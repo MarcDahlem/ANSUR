@@ -7,177 +7,164 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Layout;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
-import org.gstreamer.Element;
-import org.gstreamer.ElementFactory;
-import org.gstreamer.Gst;
-import org.gstreamer.Pipeline;
-import org.gstreamer.StateChangeReturn;
-import org.gstreamer.event.EOSEvent;
 import org.gstreamer.swt.VideoComponent;
 
 
 public class Gui {
-
-	static private Pipeline pipe;
-	static private Element record_queue;
-	static private Element switcher;
-	static private Element enc;
-	static private Element mux;
-	static private Element fileSink;
+	private static final String CapturingPaths = "/home/marc/";
+	private static final String CapturingName = "testcambin";
+	private static final String CapturingEnding = ".avi";
 	
+	private Display display;
+	private Shell shell;
+	private VideoComponent vid;
+	private boolean fps;
+	private Recorder recorder;
+	private int recorderCounter = 0;
+	private Button button_fullScreen;
+	private Button button_stop;
+	private Button button_play;
+	private Button button_record;
 
-	public static void main(String[] args){
-		args = Gst.init("SWTMultimediaVideo", args);
-		Display display = new Display();
-		Shell shell = new Shell(display);
-		configureGUI(shell);
+	private void configureGUI() {
+		//set the titel
+		this.shell.setText("Multimeda System 2012 Luleå - Lab 1");
+
+		//set the layout to gridlayout
+		Layout layout = new GridLayout(4, false);
+		//layout.type=SWT.VERTICAL;
+		this.shell.setLayout(layout);
+		this.shell.setMinimumSize(600, 400);
+
+
+
+		//add video windows
+		//final Composite composite = new Composite(shell, SWT.CENTER);
+		//composite.setLayout(new FillLayout());
+		//Composite composite2 = new Composite(shell, SWT.CENTER);
+		this.vid = new VideoComponent(shell, SWT.NONE);
+
+		GridData data = new GridData(GridData.FILL_BOTH);
+		data.horizontalSpan=4;
+		data.grabExcessVerticalSpace=true;
+		data.grabExcessHorizontalSpace=true;
+		this.vid.setLayoutData(data);
+		this.vid.setKeepAspect(true);
+		//vid.setLayoutData(new GridData(GridData.FILL_BOTH));
+
+		// add fullscreen button
+		this.button_fullScreen = new Button (shell, SWT.PUSH);
+		this.button_fullScreen.setText ("Fullscreen...");
+
+		this.button_stop = new Button (shell, SWT.PUSH);
+		this.button_stop.setText ("Stop!");
+		this.button_stop.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				Gui.this.StopRecorder();
+			}
+		});
+
+		this.button_play = new Button (shell, SWT.PUSH);
+		this.button_play.setText ("Play");
+		this.button_play.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				Gui.this.playRecorder();
+			}
+		});
+
+		this.button_record = new Button (shell, SWT.PUSH);
+		this.button_record.setText ("Record");
+
+		//add fullscreen switch
+		this.button_fullScreen.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				Gui.this.setFullScreen();
+			}
+		});
+
+		this.button_record.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				boolean recording = Gui.this.recorder.isRecording();
+				if (recording) {
+					Gui.this.stopRec();
+				} else {
+					//not recording => recording
+					Gui.this.startRec();
+				}
+			}
+		});
+		shell.setDefaultButton (this.button_play);
+		
+		shell.pack ();
+	}
+
+	private void setFullScreen() {
+		button_play.dispose();
+		button_record.dispose();
+		button_fullScreen.dispose();
+		button_stop.dispose();
+		vid.getShell().setFullScreen(!shell.getFullScreen());
+		Menu menu = new Menu(vid);
+		MenuItem item = new MenuItem (menu, SWT.NONE);
+		item.setText("test");
+		vid.setMenu(menu);
+	}
+
+	private void startRec() {
+		String fileName= CapturingPaths+CapturingName+(this.recorderCounter++)+CapturingEnding;
+		this.recorder.startRec(fileName);
+		button_record.setText("Stop rec");
+	}
+
+	private void stopRec() {
+		this.recorder.stopRec();
+		button_record.setText("Record");
+	}
+
+	private void playRecorder() {
+		this.recorder.play();
+	}
+
+	private void StopRecorder() {
+		this.recorder.stop();
+		
+	}
+
+	public void run() {
 		shell.open();
 		while (!shell.isDisposed()) {
 			if (!display.readAndDispatch()) {
 				display.sleep();
 			}
 		}
-		pipe.stop();
-		display.dispose();
+		this.recorder.stop();
+		this.display.dispose();
 	}
 
-	private static void configureGUI(final Shell shell) {
-		//set the titel
-		shell.setText("Multimeda System 2012 Luleå - Lab 1");
-		// add fullscreen button
-		final Button button_fullScreen = new Button (shell, SWT.PUSH);
-		button_fullScreen.setText ("Fullscreen...");
-		//add fullscreen switch
-		button_fullScreen.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent e) {
-				shell.setFullScreen(!shell.getFullScreen());
-			}
-		});
-
-		final Button button_stop = new Button (shell, SWT.PUSH);
-		button_stop.setText ("Stop!");
-		button_stop.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent e) {
-				pipe.stop();
-			}
-		});
-
-		final Button button_play = new Button (shell, SWT.PUSH);
-		button_play.setText ("Play");
-		button_play.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent e) {
-				pipe.play();
-			}
-		});
-		
-		final Button button_record = new Button (shell, SWT.PUSH);
-		button_record.setText ("Record");
-		
-		final Element tee = ElementFactory.make("tee", "Tee split buffer");
-		
-
-		pipe = new Pipeline("Gstreamer play/record pipe");
-		Element src = ElementFactory.make("v4l2src", "video capturing source");
-
-		
-		
-		//add video windows
-		VideoComponent vid = new VideoComponent(shell, SWT.NONE);
-		vid.showFPS(true);
-		Element sink = vid.getElement();
-		sink.setName("SWTVideo");
-
-		Element play_queue= ElementFactory.make ("queue", "playback queue");
-		play_queue.set("leaky", 1);
-
-		//Element motionDetect = ElementFactory.make("motioncells", "motion detector of OpenCV");
-
-		vid.setKeepAspect(true);
-		vid.setLayoutData(new GridData(GridData.FILL_BOTH));
-		
-		record_queue= ElementFactory.make ("queue", "recording queue");
-		switcher = ElementFactory.make("valve", "Switcher for recording");
-		switcher.set("drop", true);
-
-		pipe.addMany(src, tee, play_queue, sink, record_queue, switcher);
-		boolean b1 = Element.linkMany(src, tee);
-		if (!b1) {
-			//TODO
-			throw new IllegalStateException("b1");
-		}
-		boolean b2 = Element.linkMany(tee, record_queue, switcher);
-		if (!b2) {
-			//TODO
-			throw new IllegalStateException("b2");
-		}
-		boolean b3 = Element.linkMany(tee, play_queue,sink);
-		if (!b3) {
-			//TODO
-			throw new IllegalStateException("b3");
-		}
-		
-		
-		
-		button_record.addSelectionListener(new SelectionAdapter() {
-			int counter = 0;
-			public void widgetSelected(SelectionEvent e) {
-				if (counter == 0) {
-					setupRecording();
-					counter=1;
-				}
-				
-				Boolean notRecording = (Boolean)switcher.get("drop");
-				
-				if (!notRecording) {
-					//recording => stop recording
-					switcher.set("drop", !notRecording);
-					enc.sendEvent(new EOSEvent());
-					enc.stop();
-					mux.stop();
-					fileSink.stop();
-					fileSink.set("location", "/home/marc/test"+(counter++)+".avi");
-					button_record.setText ("Record");
-				} else {
-					//not recording => recording
-					fileSink.play();
-					mux.play();
-					enc.play();
-					//State state = fileSink.getState();
-					switcher.set("drop", !notRecording);
-					button_record.setText("Stop Rec");
-				}
-			}
-		});
-        pipe.play();
-		
-		
-		shell.setDefaultButton (button_fullScreen);
-		GridLayout layout = new GridLayout(3, false);
-		shell.setLayout(layout);
-		//shell.setMinimumSize(300, 100);
-		shell.pack ();
+	public void init() {
+		this.display = new Display();
+		this.shell = new Shell(display);
+		this.configureGUI();
 	}
 	
-	private static void setupRecording(){
-		//TODO preference windows
-		//enc = ElementFactory.make("x264enc", "avi Encoder");
-		enc = ElementFactory.make("theoraenc", "Encoder ogg");
-		//mux = ElementFactory.make("avimux", "avi Muxer");
-		mux = ElementFactory.make("oggmux", "Ogg Muxer");
-		//TODO add file dialog
-		fileSink = ElementFactory.make("filesink", "File Sink");
-		fileSink.set("location", "/home/marc/test0.avi");
-		pipe.addMany(enc, mux, fileSink);
-			
-		boolean b4 = Element.linkMany(switcher, enc, mux, fileSink);
-		if (!b4) {
-			//TODO
-			throw new IllegalStateException("b4");
+	private void changeShowFPS() {
+		this.fps =!fps;
+		this.vid.showFPS(this.fps);
+	}
+
+	public VideoComponent getVideoComponent() {
+		return this.vid;
+	}
+
+	public void setRecorder(Recorder rec) {
+		if (rec != null) {
+		  this.recorder=rec;
+		} else {
+			throw new IllegalArgumentException("Recorder cannot be null");
 		}
-		
-		StateChangeReturn p1 = enc.play();
-		StateChangeReturn p2 = mux.play();
-		StateChangeReturn p3 = fileSink.play();
 	}
 }
