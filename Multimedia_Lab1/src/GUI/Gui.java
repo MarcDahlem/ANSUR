@@ -1,17 +1,21 @@
 package GUI;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Layout;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.gstreamer.swt.VideoComponent;
+
+import Recorder.Recorder;
 
 
 public class Gui {
@@ -29,55 +33,62 @@ public class Gui {
 	private Button button_stop;
 	private Button button_play;
 	private Button button_record;
+	private Composite defaultScreenComposite;
+	private Composite fullScreenComposite;
 
 	private void configureGUI() {
 		//set the titel
 		this.shell.setText("Multimeda System 2012 Luleå - Lab 1");
-
+		StackLayout stackLayout = new StackLayout();
+		this.shell.setLayout(stackLayout);
+		this.defaultScreenComposite = new Composite(shell,SWT.NONE);
+		this.fullScreenComposite = new Composite(shell, SWT.NONE);
+		Layout lay = new GridLayout(1, false);
+		this.fullScreenComposite.setLayout(lay);
+		
 		//set the layout to gridlayout
 		Layout layout = new GridLayout(4, false);
 		//layout.type=SWT.VERTICAL;
-		this.shell.setLayout(layout);
+		this.defaultScreenComposite.setLayout(layout);
 		this.shell.setMinimumSize(600, 400);
 
 
 
 		//add video windows
-		//final Composite composite = new Composite(shell, SWT.CENTER);
-		//composite.setLayout(new FillLayout());
-		//Composite composite2 = new Composite(shell, SWT.CENTER);
-		this.vid = new VideoComponent(shell, SWT.NONE);
-
+		this.vid = new VideoComponent(this.defaultScreenComposite, SWT.BORDER_DASH);
 		GridData data = new GridData(GridData.FILL_BOTH);
 		data.horizontalSpan=4;
 		data.grabExcessVerticalSpace=true;
 		data.grabExcessHorizontalSpace=true;
 		this.vid.setLayoutData(data);
 		this.vid.setKeepAspect(true);
-		//vid.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 		// add fullscreen button
-		this.button_fullScreen = new Button (shell, SWT.PUSH);
+		this.button_fullScreen = new Button (this.defaultScreenComposite, SWT.PUSH);
 		this.button_fullScreen.setText ("Fullscreen...");
+		this.button_fullScreen.pack();
 
-		this.button_stop = new Button (shell, SWT.PUSH);
+		this.button_stop = new Button (this.defaultScreenComposite, SWT.PUSH);
 		this.button_stop.setText ("Stop!");
 		this.button_stop.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				Gui.this.StopRecorder();
 			}
 		});
+		this.button_stop.pack();
 
-		this.button_play = new Button (shell, SWT.PUSH);
+		this.button_play = new Button (this.defaultScreenComposite, SWT.PUSH);
 		this.button_play.setText ("Play");
 		this.button_play.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				Gui.this.playRecorder();
 			}
 		});
+		this.button_play.pack();
 
-		this.button_record = new Button (shell, SWT.PUSH);
+		this.button_record = new Button (this.defaultScreenComposite, SWT.PUSH);
 		this.button_record.setText ("Record");
+		this.button_record.pack();
 
 		//add fullscreen switch
 		this.button_fullScreen.addSelectionListener(new SelectionAdapter() {
@@ -97,21 +108,24 @@ public class Gui {
 				}
 			}
 		});
-		shell.setDefaultButton (this.button_play);
-		
+		//shell.setDefaultButton (this.button_play);
+		stackLayout.topControl = this.defaultScreenComposite;
+        this.defaultScreenComposite.layout();
+        
 		shell.pack ();
 	}
 
 	private void setFullScreen() {
-		button_play.dispose();
-		button_record.dispose();
-		button_fullScreen.dispose();
-		button_stop.dispose();
-		vid.getShell().setFullScreen(!shell.getFullScreen());
+		StackLayout layout = (StackLayout) this.shell.getLayout();
+		
+		this.vid.setParent(this.fullScreenComposite);
+		layout.topControl = this.fullScreenComposite;
+		this.fullScreenComposite.layout();
+		this.vid.getShell().setFullScreen(!this.shell.getFullScreen());
 		Menu menu = new Menu(vid);
 		MenuItem item = new MenuItem (menu, SWT.NONE);
 		item.setText("test");
-		vid.setMenu(menu);
+		this.vid.setMenu(menu);
 	}
 
 	private void startRec() {

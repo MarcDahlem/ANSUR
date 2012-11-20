@@ -1,7 +1,10 @@
-package GUI;
+package APP;
 
 import org.gstreamer.Gst;
 import org.gstreamer.swt.VideoComponent;
+
+import GUI.Gui;
+import Recorder.Recorder;
 
 
 public class MyRecorderApp {

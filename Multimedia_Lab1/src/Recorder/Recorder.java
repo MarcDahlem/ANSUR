@@ -1,7 +1,7 @@
 /**
  * 
  */
-package GUI;
+package Recorder;
 
 import org.gstreamer.Element;
 import org.gstreamer.ElementFactory;
