@@ -129,7 +129,7 @@ public class Recorder {
 	}
 
 	/**
-	 * stops the recording and the playing of the webcame video
+	 * stops the recording and the playing of the webcam video
 	 */
 	public void stop() {
 		//stop everything

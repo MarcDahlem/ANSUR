@@ -29,11 +29,13 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Layout;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.gstreamer.swt.VideoComponent;
 
@@ -42,7 +44,7 @@ import Recorder.Recorder;
 public class Gui {
 
 	//These Strings are used to build the filename, where the recorded files are safed.
-	private static final String CapturingPaths = "/home/marc/";
+	private static String CapturingPath = null;
 	private static final String CapturingName = "testcambin";
 	private static final String CapturingEnding = ".ogg";
 
@@ -62,6 +64,10 @@ public class Gui {
 	private MouseMoveListener listener_mouseMove_woMen; //listener for the fullscreenwindow without a shown menu
 	private MouseMoveListener listener_mouseMove_wMen; //listener for fullscreen with menu
 	private Runnable menu_timer;  //the timer used to switch the menu off
+
+	private Composite menuBarDefaultComp;
+	private Composite menuBarFSComp;
+
 	/**
 	 * The constructur of the Gui initialises counters, listeners and the timer.
 	 * The GUI is not configured after the constructor finishes.
@@ -249,25 +255,17 @@ public class Gui {
 
 	/**
 	 * Adds the menu to the given composite with centralized buttons to control the recorder.
-	 * 	 * 
+	 * side effect: the composite {@link #menuBarDefaultComp} is set so that the menubar can easily be connected/disconnected to this composit
 	 * @param parent the parent composite where the menu-buttons should be added
 	 */
 	private void addButtons(Composite parent) {
-		//first create new composite and add a grid layout to but the buttons on
-		Composite comp = new Composite (parent, SWT.NONE);
-		GridLayout gridLayout = new GridLayout(3, false);
-		comp.setLayout(gridLayout);
-
-		//set the griddata to be filled horizontaly. Are used from the parent composite
-		GridData gridData = new GridData(SWT.FILL, SWT.NONE, true, false);
-		comp.setLayoutData(gridData);
+		// create the MenuBar
+		Composite comp = createMenubarComposit(parent);
+		//set the composite, where the menubar is connected to, so that it can easily be disconnected or reconnected to during fullscreen switches
+		this.menuBarDefaultComp = parent;
 
 		//the gridlayout is used to center the buttons. Add hidden fields left and right to center...
-		Label leftLabel = new Label(comp, SWT.NONE);
-		leftLabel.setVisible(false);
-		//it has to be excessing the horizontal space. Without a right side that would leed to buttons always on the right sode of the menu bar
-		GridData leftData = new GridData(SWT.FILL, SWT.NONE, true, false); 
-		leftLabel.setLayoutData(leftData);
+		addHiddenField(comp);
 
 		//create a new composite for the middle, to create boarder around all the buttons
 		Composite middle = new Composite(comp, SWT.BORDER);
@@ -281,26 +279,17 @@ public class Gui {
 		//add play button and connect it to its action
 		final Button button_play = new Button (middle, SWT.PUSH);
 		button_play.setText ("Play");
-		
+
 		//add a record button
 		final Button button_record = new Button (middle, SWT.TOGGLE);
 		button_record.setText ("Record");
-		
-		//add a show fps button
-		final Button button_fps = new Button (middle, SWT.TOGGLE);
-		button_fps.setText ("showFPS");
-		
-		//add a fullscreen button
-		final Button button_fullScreen = new Button (middle, SWT.TOGGLE);
-		button_fullScreen.setText ("Fullscreen");
-		
-		//set the default enablement of the buttons
-		button_play.setEnabled(true);
+
+		//disable stop and record at the beginning
 		button_stop.setEnabled(false);
 		button_record.setEnabled(false);
-		
+
 		//add the actions for the buttons
-		
+
 		//add action to the play button
 		button_play.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
@@ -312,7 +301,7 @@ public class Gui {
 				button_record.setEnabled(true);
 			}
 		});
-		
+
 		// add the action to the stop button
 		button_stop.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
@@ -335,11 +324,59 @@ public class Gui {
 					Gui.this.stopRecording();
 				} else {
 					//not recording => recording
-					Gui.this.startRec();
+					boolean succ = Gui.this.startRec();
+					if (!succ) {
+						//not successfully started. Means no directory chosen.
+						//inform the user
+						MessageBox dlg = new MessageBox(Gui.this.display.getShells()[0], SWT.OK);
+						dlg.setMessage("No directory selected. Cannot record.");
+						dlg.setText("Information");
+						dlg.open();
+						//and reset the selection on the button
+						button_record.setSelection(!button_record.getSelection());
+						// then return
+						return;
+					}
 				}
 			}
 		});
+		//add another empty layout at the right side so that the buttons are centered. It has to grab horizontal size
+		addHiddenField(comp);
+
+		// and finally add a new line with the preference buttons
+		addPreferenceButtons(comp);
+	}
+
+	/** Adds prefernce buttons to the given composite
+	 * 
+	 * @param comp used as parent for the preference buttons
+	 */
+	private void addPreferenceButtons(Composite comp) {
+		//center right, add a hidden Field
+		Composite pref = new Composite(comp, SWT.NONE);
+		pref.setLayout(new GridLayout(2,false));
+		GridData data = new GridData(SWT.FILL, SWT.NONE, true, false);
+		data.horizontalSpan=3;
+		pref.setLayoutData(data);
 		
+		addHiddenField(pref);
+		
+		//create a sub Composit for this buttons
+		Composite middle = new Composite(pref, SWT.BORDER);
+		middle.setLayout(new GridLayout(3, false));
+		
+		//add a show fps button
+		final Button button_fps = new Button (middle, SWT.TOGGLE);
+		button_fps.setText ("showFPS");
+
+		//add a fullscreen button
+		final Button button_fullScreen = new Button (middle, SWT.TOGGLE);
+		button_fullScreen.setText ("Fullscreen");
+
+		//add a record button
+		final Button button_dir = new Button (middle, SWT.PUSH);
+		button_dir.setText ("Select rec. dir...");
+
 		//add action to the show fps button
 		button_fps.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -349,7 +386,7 @@ public class Gui {
 				Gui.this.setShowFPS(selected);
 			}
 		});
-		
+
 		//add the action to the fullscren button
 		button_fullScreen.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -359,11 +396,43 @@ public class Gui {
 			}
 		});
 
-		//finally add another empty layout at the right side so that the buttons are centered. It has to grab horizontal size
-		Label rightLabel = new Label(comp, SWT.NONE);
-		rightLabel.setVisible(false);
-		GridData rightData = new GridData(SWT.FILL, SWT.NONE, true, false);
-		rightLabel.setLayoutData(rightData);
+		//add the action for the dir button
+		button_dir.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				//change the fullscreen mode
+				Gui.this.setCapturingPath();
+			}
+		});
+	}
+
+	/**
+	 *  creates a hidden field on the given Composite. This field is to be used in a GridLayout and grabs horizontal space
+	 * @param comp Composite, where the hidden field should be created at
+	 */
+	private void addHiddenField(Composite comp) {
+		Label label = new Label(comp, SWT.NONE);
+		label.setVisible(false);
+		//it has to be excessing the horizontal space. Without a right side that would leed to buttons always on the right sode of the menu bar
+		GridData data = new GridData(SWT.FILL, SWT.NONE, true, false); 
+		label.setLayoutData(data);
+	}
+
+	/** This method is used for creating the menu bar that can be moved around 
+	 * 
+	 * @param parent the parent, where the composite for the menubar should be created
+	 * @return Composite return the created menubar composite
+	 */
+	private Composite createMenubarComposit(Composite parent) {
+		//first create new composite and add a grid layout to but the buttons on
+		Composite comp = new Composite (parent, SWT.NONE);
+		GridLayout gridLayout = new GridLayout(3, false);
+		comp.setLayout(gridLayout);
+
+		//set the griddata to be filled horizontaly. Are used from the parent composite
+		GridData gridData = new GridData(SWT.FILL, SWT.NONE, true, false);
+		comp.setLayoutData(gridData);
+		return comp;
 	}
 
 	/**
@@ -393,29 +462,29 @@ public class Gui {
 		item.setText("test");
 		vid.setMenu(menu);
 		 */
-		
+
 		//set the video composite as variable to be able to access it during fullscreen changes
 		this.defaultVidComp = vidComposite;
 
 		//finally set the vid to the GUI-Variable
 		this.vid = vid;
 	}
-	
+
 	/**
 	 * Creates one composite as container for the two different Composites for the fullscreen.
 	 * They can be switched also using the StackLayout of SWT.
-	 * Side effekt: changes the variable {@link #fsComp} to the StackLayout-Composite of the fullscreen mode.
-	 * 
-	 * @param shell the parent, where the Fullscreen composite should be added
+	 * Side effects: 1. changes the variable {@link #fsComp} to the StackLayout-Composite of the fullscreen mode.
+	 * 				 2. sets the composite {@link #menuBarFSComp} that is used to connect the menubar to.
+	 * @param shell the parent, where the fullscreen composite should be added
 	 */
 	private void createFullScreenPlace(Shell shell) {
 		//create new Composite and set the StackLayout
 		Composite fullScreenComposite = new Composite(shell, SWT.NONE);
 		StackLayout lay = new StackLayout();
 		fullScreenComposite.setLayout(lay);
-		
+
 		//add the subcomposites for this Stacklayout. First without menu, second with menu
-		
+
 		//First the fullscreen composite without menu
 		Composite withoutMenu = new Composite(fullScreenComposite, SWT.NONE);
 		//to make id more adabdaple we used this sub-composite.
@@ -427,18 +496,18 @@ public class Gui {
 		vidWithoutMenuComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		//finally addd the mouse move-listener to the created composite, in order to be able to change when the mouse moves towards the edges
 		withoutMenu.addMouseMoveListener(this.listener_mouseMove_woMen);
-		
+
 		//Second create the Part with menu. It is nearly the same, but added the buttons at the bottom
 		Composite withMenu = new Composite(fullScreenComposite, SWT.NONE);
 		withMenu.setLayout(new GridLayout(1, false));
 		Composite withMenuVidComp = new Composite(withMenu, SWT.NONE);
 		withMenuVidComp.setLayout(new FillLayout());
 		withMenuVidComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		//add the menu bar
-		this.addButtons(withMenu);
+		//set the withMenu as component used for connecting/deconnecting the menubar when switching from fullscreen to default and vice versa
+		this.menuBarFSComp=withMenu;
 		//finally add the listener for the fullscreen WITH menu. It will update the menu_off_timer when the mouse is moved.
 		withMenu.addMouseMoveListener(this.listener_mouseMove_wMen);
-		
+
 		// set the first fullscreen composite to MODE2: withoud menu
 		lay.topControl=withoutMenu;
 		withoutMenu.layout();
@@ -485,6 +554,8 @@ public class Gui {
 			this.vid.removeMouseMoveListener(listener_mouseMove_wMen);
 			//stop the timer to hide the display. No effekt if it was not running (MODE2)
 			this.display.timerExec(-1, menu_timer);
+			// connect the menu bar back to the default panel
+			this.menuBarFSComp.getChildren()[1].setParent(this.menuBarDefaultComp);
 		} else {
 			//default mode 1. Change to MODE2 or MODE3, depending on with MODE was the last used fullscreen mode
 			StackLayout currentFSLayout = (StackLayout) this.fsComp.getLayout();
@@ -500,8 +571,10 @@ public class Gui {
 			// get the new TopComponent for the StackLayout. getParent will return the Composite with or without menu, and thats parent is the Sub-StackLayout-composite
 			newTopComponent = newVideoPlace.getParent().getParent();
 			assert newTopComponent == this.fsComp;
+			// connect the menubar to the fullscreen window for MODE3
+			this.menuBarDefaultComp.getChildren()[1].setParent(this.menuBarFSComp);
 		}
-		
+
 		//connect the video window to the new computed place
 		this.vid.setParent(newVideoPlace);
 
@@ -517,10 +590,36 @@ public class Gui {
 	/**
 	 * Sets the filename with the increased counter and send a start recording command the the connected recorder
 	 */
-	private void startRec() {
-		String fileName= CapturingPaths+CapturingName+(this.recorderCounter++)+CapturingEnding;
+	private boolean startRec() {
+		if (CapturingPath == null) {
+			boolean succ= setCapturingPath();
+			if (!succ) {
+				return false;
+			}
+		}
+		String fileName= CapturingPath+CapturingName+(this.recorderCounter++)+CapturingEnding;
 		this.recorder.startRec(fileName);
-		//TODO button_record.setText("Stop rec");
+		return true;
+	}
+
+	/** trys to get the capturing paths
+	 * 
+	 * @return if the setting of the capturing path was successfull
+	 */
+	private boolean setCapturingPath() {
+		DirectoryDialog findDirectory = new DirectoryDialog(display.getActiveShell());
+		findDirectory.setText("Recording directory selection");
+		findDirectory.setMessage("Select the directory where the recordings should be made");
+		findDirectory.setFilterPath(CapturingPath);
+		String rec_dir = findDirectory.open();
+		if (rec_dir == null) {
+			// cancelled
+			return false;
+		}
+
+		assert rec_dir != null;
+		CapturingPath=rec_dir+System.getProperty("file.separator");
+		return true;
 	}
 
 	/**
@@ -534,7 +633,7 @@ public class Gui {
 	/**
 	 * Start/restart the recorder. After that the webcame is played, but nothing recorded.
 	 */
-	
+
 	private void playRecorder() {
 		this.recorder.play();
 	}
