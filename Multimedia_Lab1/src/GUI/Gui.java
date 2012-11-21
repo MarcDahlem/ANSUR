@@ -183,7 +183,7 @@ public class Gui {
 	 */
 	private void configureGUI(Shell shell) {
 		//set the titel
-		shell.setText("Multimeda System 2012 Luleå - Lab 1");
+		shell.setText("Multimedia Systems 2012 Luleå - Lab 1");
 
 		//configure layout and minimum size of the shell
 		shell.setMinimumSize(600, 400);
@@ -299,6 +299,9 @@ public class Gui {
 				button_play.setEnabled(false);
 				button_stop.setEnabled(true);
 				button_record.setEnabled(true);
+				
+				//set the playbutton background color
+				button_play.setBackground(Gui.this.display.getSystemColor(SWT.COLOR_GREEN));
 			}
 		});
 
@@ -311,6 +314,10 @@ public class Gui {
 				button_stop.setEnabled(false);
 				button_record.setEnabled(false);
 				button_record.setSelection(false);
+				
+				//set button colors
+				button_record.setBackground(Gui.this.display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
+				button_play.setBackground(Gui.this.display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
 			}
 		});
 
@@ -322,6 +329,7 @@ public class Gui {
 				if (recording) {
 					//recording --> stop it
 					Gui.this.stopRecording();
+					button_record.setBackground(Gui.this.display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
 				} else {
 					//not recording => recording
 					boolean succ = Gui.this.startRec();
@@ -337,6 +345,7 @@ public class Gui {
 						// then return
 						return;
 					}
+					button_record.setBackground(Gui.this.display.getSystemColor(SWT.COLOR_RED));
 				}
 			}
 		});

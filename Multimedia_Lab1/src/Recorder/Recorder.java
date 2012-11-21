@@ -41,16 +41,14 @@ public class Recorder {
 
 		//create the source of the video for the camerbin. To the webcame is a motiondetector connected, but not used at the moment
 		// requires a installed "motion" plugin in gstreamer
-		Pipeline subpipe = new Pipeline();
 		Element src = ElementFactory.make("v4l2src", "video capturing source");
-		Element motionDetection = ElementFactory.make("motion", "motion detection");
+		//Element motionDetection = ElementFactory.make("motion", "motion detection");
 
 		//link the motion detector and the webcam
 		//subpipe.addMany(src/*, motionDetection*/);
-		//subpipe.link(src, motionDetection);
+		// Pipeline.linkMany(src, motionDetection);
 
 		// set the video source of the cambin element to this subpipe (not working at the moment). Setting nothing uses the default webcam without motion
-		//TODO
 		camBin.set("video-source", src);
 		//camBin.set("video-source-filter",motionDetection);
 
