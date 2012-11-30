@@ -3,8 +3,11 @@
  */
 package Recorder;
 
+import org.gstreamer.Bin;
 import org.gstreamer.Element;
 import org.gstreamer.ElementFactory;
+import org.gstreamer.GhostPad;
+import org.gstreamer.Pad;
 import org.gstreamer.Pipeline;
 import org.gstreamer.swt.VideoComponent;
 
@@ -31,51 +34,96 @@ public class Recorder {
 	 */
 	private boolean isRecording;
 
+	private Bin fistBin;
+
 	/**The default constructor for this recorder. It needs a VideoComponent to get the video playpack sink
 	 * 
 	 * @param vid component containing the playback sink for the recorder
 	 */
 	public Recorder(VideoComponent vid) {
-		//create the main recorder, camerabin
-		Element camBin = ElementFactory.make("camerabin", "cambin");
+		//create the main playback bin
+		Bin firstBin = new Bin("firstpart");
+		Pipeline pipe = new Pipeline("Webcam Recorder/Player");
 
-		//create the source of the video for the camerbin. To the webcame is a motiondetector connected, but not used at the moment
+		//create the source of the video for the recorder. To the webcame is a motiondetector connected, but not used at the moment
 		// requires a installed "motion" plugin in gstreamer
-		Element src = ElementFactory.make("v4l2src", "video capturing source");
-		//Element motionDetection = ElementFactory.make("motion", "motion detection");
 
-		//link the motion detector and the webcam
-		//subpipe.addMany(src/*, motionDetection*/);
-		// Pipeline.linkMany(src, motionDetection);
+		Bin sourceBin = createSourceBin();
+		Element tee = ElementFactory.make("tee", "Tee split buffer");
+		Element switcher = switcher = ElementFactory.make("valve", "Switcher for recording");
+		switcher.set("drop", true);
+		Bin recordBin = createRecordBin();
+		Bin playBin = createPlayBin(vid);
 
-		// set the video source of the cambin element to this subpipe (not working at the moment). Setting nothing uses the default webcam without motion
-		camBin.set("video-source", src);
-		//camBin.set("video-source-filter",motionDetection);
+		firstBin.addMany(sourceBin, tee, switcher, playBin);
+		Element.linkMany(sourceBin, tee);
+		Element.linkMany(tee, switcher);
+		Element.linkMany(tee, playBin);
+		// add a ghost pad, so that the bin is accessible from the outside
+		Pad staticSourcePad = switcher.getStaticPad("src");
+		GhostPad ghost = new GhostPad("src", staticSourcePad);
+		firstBin.addPad(ghost);
 
-		// setting the video sink to the element used in the given VideoComponent
+		pipe.addMany(firstBin, recordBin);
+		Element.linkMany(firstBin, recordBin);
+
+		this.fistBin = firstBin;
+		this.pipe=pipe;
+	}
+
+	private Bin createRecordBin() {
+		Bin recordBin = new Bin("Recorder subpipe");
+		//enc = ElementFactory.make("x264enc", "avi Encoder");
+		Element enc = ElementFactory.make("theoraenc", "Encoder ogg");
+		//mux = ElementFactory.make("avimux", "avi Muxer");
+		Element mux = ElementFactory.make("oggmux", "Ogg Muxer");
+		//TODO add file dialog
+		Element fileSink = ElementFactory.make("filesink", "File Sink");
+		Element record_queue= ElementFactory.make ("queue", "recording queue");
+		recordBin.addMany(record_queue, enc, mux, fileSink);
+		Element.linkMany(record_queue, enc, mux, fileSink);
+		// add a ghost pad, so that the bin is accessible from the outside
+		Pad staticSourcePad = record_queue.getStaticPad("sink");
+		GhostPad ghost = new GhostPad("sink", staticSourcePad);
+		recordBin.addPad(ghost);
+
+		return recordBin;
+	}
+
+	private Bin createPlayBin(VideoComponent vid) {
+		Bin playBin = new Bin("playback");
 		Element vidSink = vid.getElement();
 		vidSink.setName("SWTVideo");
 
-		//TODO preferences
-		//set the encoder and muxer. cambin is not working with avi encoder. It seems that it can only handle fast (realtime) capturing because of small buffers.
-		//Element enc = ElementFactory.make("x264enc", "avi Encoder");
-		Element enc = ElementFactory.make("theoraenc", "Encoder ogg");
-		//Element mux = ElementFactory.make("avimux", "avi Muxer");
-		Element mux = ElementFactory.make("oggmux", "Ogg Muxer");
+		Element play_queue= ElementFactory.make ("queue", "playback queue");
+		play_queue.set("leaky", 1);
 
-		//set all the created elements in the cambin
-		camBin.set("viewfinder-sink", vidSink);
-		camBin.set("video-encoder", enc);
-		camBin.set("video-muxer", mux);
-		//seting video capturing mode in cambin (mode 0 /default would be picture snapshots)
-		camBin.set("mode", 1);
+		playBin.addMany(play_queue, vidSink);
+		Element.linkMany(play_queue, vidSink);
 
-		//disable audio at the moment
-		camBin.set("mute", true);
+		// add a ghost pad, so that the bin is accessible from the outside
+		Pad staticSourcePad = play_queue.getStaticPad("sink");
+		GhostPad ghost = new GhostPad("sink", staticSourcePad);
+		playBin.addPad(ghost);
+		return playBin;
+	}
 
-		//create the main pipeline
-		this.pipe = new Pipeline ();
-		this.pipe.addMany(camBin);
+	private Bin createSourceBin() {
+		Bin sourceBin = new Bin("source");
+		Element src = ElementFactory.make("v4l2src", "video capturing source");
+		//Element motionDetection = ElementFactory.make("motion", "motion detection");
+		sourceBin.addMany(src);
+
+		//link the motion detector and the webcam
+		//sourceBin.addMany(src, motionDetection);
+		// Element.linkMany(src, motionDetection);
+
+		// add a ghost pad, so that the bin is accessible from the outside
+		Pad staticSourcePad = src.getStaticPad("src");
+		GhostPad ghost = new GhostPad("src", staticSourcePad);
+		sourceBin.addPad(ghost);
+		//return the created sourceBin
+		return sourceBin;
 	}
 
 	/*
@@ -139,6 +187,6 @@ public class Recorder {
 	 * starts the recorder. This will only play video, but not capturing video
 	 */
 	public void play() {
-		this.pipe.play();
+		this.fistBin.play();
 	}
 }
