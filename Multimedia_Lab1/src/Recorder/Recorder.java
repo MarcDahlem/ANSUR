@@ -9,6 +9,7 @@ import org.gstreamer.ElementFactory;
 import org.gstreamer.GhostPad;
 import org.gstreamer.Pad;
 import org.gstreamer.Pipeline;
+import org.gstreamer.event.EOSEvent;
 import org.gstreamer.swt.VideoComponent;
 
 /**
@@ -34,7 +35,10 @@ public class Recorder {
 	 */
 	private boolean isRecording;
 
-	private Bin fistBin;
+	private Bin firstBin;
+	private Element switcher;
+
+	private Bin currentRecordBin;
 
 	/**The default constructor for this recorder. It needs a VideoComponent to get the video playpack sink
 	 * 
@@ -50,40 +54,55 @@ public class Recorder {
 
 		Bin sourceBin = createSourceBin();
 		Element tee = ElementFactory.make("tee", "Tee split buffer");
-		Element switcher = switcher = ElementFactory.make("valve", "Switcher for recording");
-		switcher.set("drop", true);
-		Bin recordBin = createRecordBin();
+		Element switcher = ElementFactory.make("valve", "Switcher for recording");
+		Element record_queue= ElementFactory.make ("queue", "recording queue");
+		switcher.set("drop", false);
+		Bin fakeRecordBin = createFakeRecordBin();
 		Bin playBin = createPlayBin(vid);
 
-		firstBin.addMany(sourceBin, tee, switcher, playBin);
+		firstBin.addMany(sourceBin, tee, record_queue, switcher, playBin);
 		Element.linkMany(sourceBin, tee);
-		Element.linkMany(tee, switcher);
+		Element.linkMany(tee, record_queue, switcher);
 		Element.linkMany(tee, playBin);
 		// add a ghost pad, so that the bin is accessible from the outside
 		Pad staticSourcePad = switcher.getStaticPad("src");
 		GhostPad ghost = new GhostPad("src", staticSourcePad);
 		firstBin.addPad(ghost);
 
-		pipe.addMany(firstBin, recordBin);
-		Element.linkMany(firstBin, recordBin);
+		pipe.addMany(firstBin, fakeRecordBin);
+		Element.linkMany(firstBin, fakeRecordBin);
 
-		this.fistBin = firstBin;
+		this.currentRecordBin=fakeRecordBin;
+		this.switcher=switcher;
+		this.firstBin = firstBin;
 		this.pipe=pipe;
 	}
 
-	private Bin createRecordBin() {
+	private Bin createFakeRecordBin() {
+		Bin recordBin=new Bin("Recorder fake subpipe");
+		Element fakeSink = ElementFactory.make("fakesink","Recorder fakesink");
+		recordBin.addMany(fakeSink);
+		Pad staticSourcePad = fakeSink.getStaticPad("sink");
+		GhostPad ghost = new GhostPad("sink", staticSourcePad);
+		recordBin.addPad(ghost);
+		
+		return recordBin;
+	}
+
+	private Bin createRealRecordBin(String fileName) {
+		// assert fileName != null
 		Bin recordBin = new Bin("Recorder subpipe");
 		//enc = ElementFactory.make("x264enc", "avi Encoder");
 		Element enc = ElementFactory.make("theoraenc", "Encoder ogg");
 		//mux = ElementFactory.make("avimux", "avi Muxer");
 		Element mux = ElementFactory.make("oggmux", "Ogg Muxer");
-		//TODO add file dialog
+		// fileSink
 		Element fileSink = ElementFactory.make("filesink", "File Sink");
-		Element record_queue= ElementFactory.make ("queue", "recording queue");
-		recordBin.addMany(record_queue, enc, mux, fileSink);
-		Element.linkMany(record_queue, enc, mux, fileSink);
+		fileSink.set("location", fileName);
+		recordBin.addMany(enc, mux, fileSink);
+		Element.linkMany(enc, mux, fileSink);
 		// add a ghost pad, so that the bin is accessible from the outside
-		Pad staticSourcePad = record_queue.getStaticPad("sink");
+		Pad staticSourcePad = enc.getStaticPad("sink");
 		GhostPad ghost = new GhostPad("sink", staticSourcePad);
 		recordBin.addPad(ghost);
 
@@ -140,11 +159,8 @@ public class Recorder {
 	public void stopRec() {
 		if (this.isRecording) {
 			//recording => stop recording
-			Element cambin = this.pipe.getElementByName("cambin");
-			//send the stop signal to the cambin
-			cambin.emit("capture-stop");
-			//set the recording status to false
-			this.isRecording = false;
+			Bin newFakeBin = this.createFakeRecordBin();
+			this.changeRecordBin(newFakeBin);
 		}
 	}
 
@@ -163,15 +179,26 @@ public class Recorder {
 
 		// check if it is already recording
 		if (!this.isRecording()) {
-			//set the new filename
-			Element cambin = this.pipe.getElementByName("cambin");
-			cambin.set("filename", fileName);
-			//and send the capture start signal to cambin
-			cambin.emit("capture-start");
-			//change the isRecording status
-			this.isRecording=true;
+			//not recroding --> start record;
+			//create recorder bin to set the new filename
+			Bin newRecordBin = this.createRealRecordBin(fileName);
+			changeRecordBin(newRecordBin);
 		}
 
+	}
+
+	private void changeRecordBin(Bin newRecordBin) {
+		this.switcher.set("drop", true);
+		this.currentRecordBin.sendEvent(new EOSEvent());
+		this.pipe.remove(this.currentRecordBin);
+		this.currentRecordBin.stop();
+		this.pipe.addMany(newRecordBin);
+		Element.linkMany(this.firstBin, newRecordBin);
+		newRecordBin.play();
+		this.switcher.set("drop", false);
+		this.currentRecordBin = newRecordBin;
+		//change the isRecording status
+		this.isRecording=!this.isRecording;
 	}
 
 	/**
@@ -187,6 +214,6 @@ public class Recorder {
 	 * starts the recorder. This will only play video, but not capturing video
 	 */
 	public void play() {
-		this.fistBin.play();
+		this.pipe.play();
 	}
 }
