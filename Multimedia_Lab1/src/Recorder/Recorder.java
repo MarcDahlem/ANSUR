@@ -85,7 +85,7 @@ public class Recorder {
 		Pad staticSourcePad = fakeSink.getStaticPad("sink");
 		GhostPad ghost = new GhostPad("sink", staticSourcePad);
 		recordBin.addPad(ghost);
-		
+
 		return recordBin;
 	}
 
@@ -189,13 +189,16 @@ public class Recorder {
 
 	private void changeRecordBin(Bin newRecordBin) {
 		this.switcher.set("drop", true);
-		this.currentRecordBin.sendEvent(new EOSEvent());
-		this.pipe.remove(this.currentRecordBin);
-		this.currentRecordBin.stop();
+		if (this.currentRecordBin != null) {
+			this.currentRecordBin.sendEvent(new EOSEvent());
+			this.pipe.remove(this.currentRecordBin);
+			this.currentRecordBin.stop();
+		}
 		this.pipe.addMany(newRecordBin);
 		Element.linkMany(this.firstBin, newRecordBin);
 		newRecordBin.play();
 		this.switcher.set("drop", false);
+
 		this.currentRecordBin = newRecordBin;
 		//change the isRecording status
 		this.isRecording=!this.isRecording;
