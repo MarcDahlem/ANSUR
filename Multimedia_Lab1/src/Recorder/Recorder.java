@@ -55,13 +55,18 @@ public class Recorder {
 		Element.linkMany(sourceBin, playBin);
 		pipe.addMany(firstBin);
 
+		this.addBusMessageListeners(pipe);
+		this.pipe=pipe;
+	}
+
+	private void addBusMessageListeners(Pipeline pipe) {
 		pipe.getBus().connect(new Bus.ERROR() {
 
 			@Override
 			public void errorMessage(GstObject source, int code, String message) {
 				// TODO Auto-generated method stub
 				System
-				.out.println("Error Client: " +message);
+				.out.println("Error Client (" + source.getName() + "): " +message);
 			}
 		});
 
@@ -69,7 +74,7 @@ public class Recorder {
 
 			@Override
 			public void infoMessage(GstObject source, int code, String message) {
-				System.out.println("INFO Client: " + message);
+				System.out.println("INFO Client (" + source.getName() + "): " + message);
 
 			}
 		});
@@ -78,10 +83,9 @@ public class Recorder {
 			
 			@Override
 			public void warningMessage(GstObject source, int code, String message) {
-				System.out.println("Warning Client: " + message);
+				System.out.println("Warning Client (" + source.getName() + "): " + message);
 			}
 		});
-		this.pipe=pipe;
 	}
 
 	private Bin createPlayBin(VideoComponent vid) {
@@ -109,6 +113,7 @@ public class Recorder {
 		Element enc= ElementFactory.make ("theoraenc", "theory encoder");
 		Element mux = ElementFactory.make("oggmux", "ogg muxer");
 		sourceBin.addMany(src, enc, mux);
+		Element.linkMany(src,enc,mux);
 
 		//link the motion detector and the webcam
 		//sourceBin.addMany(src, motionDetection);
