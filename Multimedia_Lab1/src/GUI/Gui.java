@@ -183,7 +183,7 @@ public class Gui {
 	 */
 	private void configureGUI(Shell shell) {
 		//set the titel
-		shell.setText("Multimedia Systems 2012 Luleå - Lab 1");
+		shell.setText("Multimedia Systems 2012 Luleå - Lab 2 Server");
 
 		//configure layout and minimum size of the shell
 		shell.setMinimumSize(600, 400);
