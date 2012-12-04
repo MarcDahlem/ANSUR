@@ -89,7 +89,7 @@ public class Recorder {
 			public void errorMessage(GstObject source, int code, String message) {
 				// TODO Auto-generated method stub
 				System
-				.out.println("Error Server: " +message);
+				.out.println("Error Server (" + source.getName() + "): " +message);
 			}
 		});
 
@@ -97,7 +97,7 @@ public class Recorder {
 
 			@Override
 			public void infoMessage(GstObject source, int code, String message) {
-				System.out.println("INFO Server: " + message);
+				System.out.println("INFO Server (" + source.getName() + "): " + message);
 
 			}
 		});
@@ -106,7 +106,7 @@ public class Recorder {
 			
 			@Override
 			public void warningMessage(GstObject source, int code, String message) {
-				System.out.println("Warning Server: " + message);
+				System.out.println("Warning Server (" + source.getName() + "): " + message);
 			}
 		});
 	}
@@ -145,8 +145,10 @@ public class Recorder {
 		Element play_queue= ElementFactory.make ("queue", "playback queue");
 		play_queue.set("leaky", 1);
 
-		playBin.addMany(play_queue, vidSink);
-		Element.linkMany(play_queue, vidSink);
+		Element demux = ElementFactory.make("oggdemux", "Ogg demuxer");
+		Element dec = ElementFactory.make("theoradec", "Theora decoder");
+		playBin.addMany(play_queue, demux, dec, vidSink);
+		Element.linkMany(play_queue, demux, dec, vidSink);
 
 		// add a ghost pad, so that the bin is accessible from the outside
 		Pad staticSourcePad = play_queue.getStaticPad("sink");
