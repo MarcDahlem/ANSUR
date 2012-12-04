@@ -157,7 +157,7 @@ public class Recorder {
 	 * If not recording nothing happens.
 	 */
 	public void stopRec() {
-		if (this.isRecording) {
+		if (this.isRecording()) {
 			//recording => stop recording
 			Bin newFakeBin = this.createFakeRecordBin();
 			this.changeRecordBin(newFakeBin);
@@ -189,11 +189,10 @@ public class Recorder {
 
 	private void changeRecordBin(Bin newRecordBin) {
 		this.switcher.set("drop", true);
-		if (this.currentRecordBin != null) {
-			this.currentRecordBin.sendEvent(new EOSEvent());
-			this.pipe.remove(this.currentRecordBin);
-			this.currentRecordBin.stop();
-		}
+	    this.currentRecordBin.sendEvent(new EOSEvent());
+		this.pipe.remove(this.currentRecordBin);
+		this.currentRecordBin.stop();
+		
 		this.pipe.addMany(newRecordBin);
 		Element.linkMany(this.firstBin, newRecordBin);
 		newRecordBin.play();
