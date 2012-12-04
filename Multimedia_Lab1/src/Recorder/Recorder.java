@@ -3,8 +3,11 @@
  */
 package Recorder;
 
+import org.gstreamer.Bin;
 import org.gstreamer.Element;
 import org.gstreamer.ElementFactory;
+import org.gstreamer.GhostPad;
+import org.gstreamer.Pad;
 import org.gstreamer.Pipeline;
 import org.gstreamer.swt.VideoComponent;
 
@@ -41,15 +44,11 @@ public class Recorder {
 
 		//create the source of the video for the camerbin. To the webcame is a motiondetector connected, but not used at the moment
 		// requires a installed "motion" plugin in gstreamer
-		Element src = ElementFactory.make("v4l2src", "video capturing source");
-		//Element motionDetection = ElementFactory.make("motion", "motion detection");
-
-		//link the motion detector and the webcam
-		//subpipe.addMany(src/*, motionDetection*/);
-		// Pipeline.linkMany(src, motionDetection);
-
+		
+		Bin srcBin = this.createSourceBin();
+		
 		// set the video source of the cambin element to this subpipe (not working at the moment). Setting nothing uses the default webcam without motion
-		camBin.set("video-source", src);
+		camBin.set("video-source", srcBin);
 		//camBin.set("video-source-filter",motionDetection);
 
 		// setting the video sink to the element used in the given VideoComponent
@@ -76,6 +75,34 @@ public class Recorder {
 		//create the main pipeline
 		this.pipe = new Pipeline ();
 		this.pipe.addMany(camBin);
+		
+//		this.pipe.getBus().connect(new Bus.MESSAGE() {
+// 
+//            public void busMessage(Bus bus, Message msg) {
+//            	Element motionDetection = Recorder.this.pipe.getElementByName("motion detection");
+//				if (msg.getSource().equals(motionDetection)) {
+//					System.out.println("motion message");
+//				}
+//            }
+//        });
+	}
+	
+	private Bin createSourceBin() {
+		Bin sourceBin = new Bin("source");
+		Element src = ElementFactory.make("v4l2src", "video capturing source");
+		Element motionDetection = ElementFactory.make("motion", "motion detection");
+		Element ffmpeg = ElementFactory.make("ffmpegcolorspace", "color mapping after motion");
+		sourceBin.addMany(src, motionDetection, ffmpeg);
+
+		//link the motion detector and the webcam
+		Element.linkMany(src, motionDetection, ffmpeg);
+
+		// add a ghost pad, so that the bin is accessible from the outside
+		Pad staticSourcePad = ffmpeg.getStaticPad("src");
+		GhostPad ghost = new GhostPad("src", staticSourcePad);
+		sourceBin.addPad(ghost);
+		//return the created sourceBin
+		return sourceBin;
 	}
 
 	/*
