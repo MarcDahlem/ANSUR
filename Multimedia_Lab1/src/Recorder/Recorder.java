@@ -4,9 +4,11 @@
 package Recorder;
 
 import org.gstreamer.Bin;
+import org.gstreamer.Bus;
 import org.gstreamer.Element;
 import org.gstreamer.ElementFactory;
 import org.gstreamer.GhostPad;
+import org.gstreamer.GstObject;
 import org.gstreamer.Pad;
 import org.gstreamer.Pipeline;
 import org.gstreamer.event.EOSEvent;
@@ -71,11 +73,42 @@ public class Recorder {
 
 		pipe.addMany(firstBin, fakeRecordBin);
 		Element.linkMany(firstBin, fakeRecordBin);
+		
+		this.addBusListeners(pipe);
 
 		this.currentRecordBin=fakeRecordBin;
 		this.switcher=switcher;
 		this.firstBin = firstBin;
 		this.pipe=pipe;
+	}
+
+	private void addBusListeners(Pipeline pipe) {
+		pipe.getBus().connect(new Bus.ERROR() {
+
+			@Override
+			public void errorMessage(GstObject source, int code, String message) {
+				// TODO Auto-generated method stub
+				System
+				.out.println("Error Server: " +message);
+			}
+		});
+
+		pipe.getBus().connect(new Bus.INFO() {
+
+			@Override
+			public void infoMessage(GstObject source, int code, String message) {
+				System.out.println("INFO Server: " + message);
+
+			}
+		});
+		
+		pipe.getBus().connect(new Bus.WARNING() {
+			
+			@Override
+			public void warningMessage(GstObject source, int code, String message) {
+				System.out.println("Warning Server: " + message);
+			}
+		});
 	}
 
 	private Bin createFakeRecordBin() {
