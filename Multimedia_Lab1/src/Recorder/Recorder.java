@@ -92,17 +92,12 @@ public class Recorder {
 	private Bin createRealRecordBin(String fileName) {
 		// assert fileName != null
 		Bin recordBin = new Bin("Recorder subpipe");
-		//enc = ElementFactory.make("x264enc", "avi Encoder");
-		Element enc = ElementFactory.make("theoraenc", "Encoder ogg");
-		//mux = ElementFactory.make("avimux", "avi Muxer");
-		Element mux = ElementFactory.make("oggmux", "Ogg Muxer");
 		// fileSink
 		Element fileSink = ElementFactory.make("filesink", "File Sink");
 		fileSink.set("location", fileName);
-		recordBin.addMany(enc, mux, fileSink);
-		Element.linkMany(enc, mux, fileSink);
+		recordBin.addMany(fileSink);
 		// add a ghost pad, so that the bin is accessible from the outside
-		Pad staticSourcePad = enc.getStaticPad("sink");
+		Pad staticSourcePad = fileSink.getStaticPad("sink");
 		GhostPad ghost = new GhostPad("sink", staticSourcePad);
 		recordBin.addPad(ghost);
 
@@ -129,7 +124,8 @@ public class Recorder {
 
 	private Bin createSourceBin() {
 		Bin sourceBin = new Bin("source");
-		Element src = ElementFactory.make("v4l2src", "video capturing source");
+		Element src = ElementFactory.make("tcpserversrc", "tcpserversrc");
+		src.set("port", 5000);
 		//Element motionDetection = ElementFactory.make("motion", "motion detection");
 		sourceBin.addMany(src);
 
