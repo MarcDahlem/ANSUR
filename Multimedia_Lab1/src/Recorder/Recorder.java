@@ -4,9 +4,11 @@
 package Recorder;
 
 import org.gstreamer.Bin;
+import org.gstreamer.Bus;
 import org.gstreamer.Element;
 import org.gstreamer.ElementFactory;
 import org.gstreamer.GhostPad;
+import org.gstreamer.GstObject;
 import org.gstreamer.Pad;
 import org.gstreamer.Pipeline;
 import org.gstreamer.swt.VideoComponent;
@@ -33,7 +35,7 @@ public class Recorder {
 	 * a boolean value that descibes, if the recorder is capturing video at the moment
 	 */
 	private boolean isRecording;
-	
+
 	/**The default constructor for this recorder. It needs a VideoComponent to get the video playpack sink
 	 * 
 	 * @param vid component containing the playback sink for the recorder
@@ -53,12 +55,39 @@ public class Recorder {
 		Element.linkMany(sourceBin, playBin);
 		pipe.addMany(firstBin);
 
+		pipe.getBus().connect(new Bus.ERROR() {
+
+			@Override
+			public void errorMessage(GstObject source, int code, String message) {
+				// TODO Auto-generated method stub
+				System
+				.out.println("Error Client: " +message);
+			}
+		});
+
+		pipe.getBus().connect(new Bus.INFO() {
+
+			@Override
+			public void infoMessage(GstObject source, int code, String message) {
+				System.out.println("INFO Client: " + message);
+
+			}
+		});
+		
+		pipe.getBus().connect(new Bus.WARNING() {
+			
+			@Override
+			public void warningMessage(GstObject source, int code, String message) {
+				System.out.println("Warning Client: " + message);
+			}
+		});
 		this.pipe=pipe;
 	}
 
 	private Bin createPlayBin(VideoComponent vid) {
 		Bin playBin = new Bin("playback");
 		Element vidSink = ElementFactory.make ("tcpclientsink", "tcp client sink");
+		vidSink.set("host", "localhost");
 		vidSink.set("port", 5000);
 
 		Element play_queue= ElementFactory.make ("queue", "playback queue");
