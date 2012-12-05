@@ -146,9 +146,18 @@ public class Recorder {
 		play_queue.set("leaky", 1);
 
 		Element demux = ElementFactory.make("oggdemux", "Ogg demuxer");
-		Element dec = ElementFactory.make("theoradec", "Theora decoder");
+		final Element dec = ElementFactory.make("theoradec", "Theora decoder");
 		playBin.addMany(play_queue, demux, dec, vidSink);
-		Element.linkMany(play_queue, demux, dec, vidSink);
+		Element.linkMany(play_queue,demux);
+		Element.linkMany(dec, vidSink);
+		
+		demux.connect(new Element.PAD_ADDED() {
+			
+			@Override
+			public void padAdded(Element element, Pad pad) {
+				Element.linkMany(element, dec);
+			}
+		});
 
 		// add a ghost pad, so that the bin is accessible from the outside
 		Pad staticSourcePad = play_queue.getStaticPad("sink");
