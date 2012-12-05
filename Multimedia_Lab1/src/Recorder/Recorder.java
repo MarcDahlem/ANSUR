@@ -163,6 +163,7 @@ public class Recorder {
 		Pad staticSourcePad = play_queue.getStaticPad("sink");
 		GhostPad ghost = new GhostPad("sink", staticSourcePad);
 		playBin.addPad(ghost);
+		
 		return playBin;
 	}
 
@@ -199,8 +200,13 @@ public class Recorder {
 	public void stopRec() {
 		if (this.isRecording()) {
 			//recording => stop recording
-			Bin newFakeBin = this.createFakeRecordBin();
-			this.changeRecordBin(newFakeBin);
+			Element fileSink = this.currentRecordBin.getElementByName("File Sink");
+			this.switcher.set("drop", true);
+			fileSink.sendEvent(new EOSEvent());
+			fileSink.stop();
+			this.isRecording=false;
+			//Bin newFakeBin = this.createFakeRecordBin();
+			//this.changeRecordBin(newFakeBin);
 		}
 	}
 
