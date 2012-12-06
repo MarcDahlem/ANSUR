@@ -7,6 +7,7 @@ import org.gstreamer.Bin;
 import org.gstreamer.Bus;
 import org.gstreamer.Element;
 import org.gstreamer.ElementFactory;
+import org.gstreamer.Event;
 import org.gstreamer.GhostPad;
 import org.gstreamer.GstObject;
 import org.gstreamer.Pad;
@@ -49,7 +50,7 @@ public class Recorder {
 	public Recorder(VideoComponent vid) {
 		//create the main playback bin
 		Bin firstBin = new Bin("firstpart");
-		Pipeline pipe = new Pipeline("Webcam Recorder/Player");
+		Pipeline pipe = new Pipeline("Webcam Recorder/Player on Server");
 
 		//create the source of the video for the recorder. To the webcame is a motiondetector connected, but not used at the moment
 		// requires a installed "motion" plugin in gstreamer
@@ -73,7 +74,7 @@ public class Recorder {
 
 		pipe.addMany(firstBin, fakeRecordBin);
 		Element.linkMany(firstBin, fakeRecordBin);
-		
+
 		this.addBusListeners(pipe);
 
 		this.currentRecordBin=fakeRecordBin;
@@ -101,12 +102,21 @@ public class Recorder {
 
 			}
 		});
-		
+
 		pipe.getBus().connect(new Bus.WARNING() {
-			
+
 			@Override
 			public void warningMessage(GstObject source, int code, String message) {
 				System.out.println("Warning Server (" + source.getName() + "): " + message);
+			}
+		});
+		
+		pipe.getBus().connect(new Bus.EOS() {
+			
+			@Override
+			public void endOfStream(GstObject source) {
+				System.out.println ("EOS received. Source: '" + source.getName() + "'.");
+				Recorder.this.stop();
 			}
 		});
 	}
@@ -150,9 +160,9 @@ public class Recorder {
 		playBin.addMany(play_queue, demux, dec, vidSink);
 		Element.linkMany(play_queue,demux);
 		Element.linkMany(dec, vidSink);
-		
+
 		demux.connect(new Element.PAD_ADDED() {
-			
+
 			@Override
 			public void padAdded(Element element, Pad pad) {
 				Element.linkMany(element, dec);
@@ -163,7 +173,7 @@ public class Recorder {
 		Pad staticSourcePad = play_queue.getStaticPad("sink");
 		GhostPad ghost = new GhostPad("sink", staticSourcePad);
 		playBin.addPad(ghost);
-		
+
 		return playBin;
 	}
 
@@ -171,6 +181,21 @@ public class Recorder {
 		Bin sourceBin = new Bin("source");
 		Element src = ElementFactory.make("tcpserversrc", "tcpserversrc");
 		src.set("port", 5000);
+		Pad pad = src.getStaticPad("src");
+		pad.addEventProbe(new Pad.EVENT_PROBE() {
+
+			@Override
+			public boolean eventReceived(Pad pad, Event event) {
+				System.out.println("Event received: '" + event + "' on pad '" + pad.getName()+"'.");
+				if (event instanceof EOSEvent) {
+					//Recorder.this.pipe.stop();
+					return false;
+				} else {
+					return false;
+				}
+			}
+		});
+
 		//Element motionDetection = ElementFactory.make("motion", "motion detection");
 		sourceBin.addMany(src);
 
@@ -200,10 +225,25 @@ public class Recorder {
 	public void stopRec() {
 		if (this.isRecording()) {
 			//recording => stop recording
-			Element fileSink = this.currentRecordBin.getElementByName("File Sink");
+			final Element fileSink = this.currentRecordBin.getElementByName("File Sink");
 			this.switcher.set("drop", true);
-			fileSink.sendEvent(new EOSEvent());
-			fileSink.stop();
+			Pad pad = fileSink.getStaticPad("sink");
+			pad.addEventProbe(new Pad.EVENT_PROBE() {
+
+				@Override
+				public boolean eventReceived(Pad pad, Event event) {
+					if (event instanceof EOSEvent) {
+						System.out.println("EOS received in filesink");
+						fileSink.stop();
+						pad.removeEventProbe(this);
+						return false;
+					} else {
+						System.out.println("Event received, that is not an eos on fileSink");
+						return true;
+					}
+				}
+			});
+			pad.sendEvent(new EOSEvent());
 			this.isRecording=false;
 			//Bin newFakeBin = this.createFakeRecordBin();
 			//this.changeRecordBin(newFakeBin);
@@ -234,11 +274,30 @@ public class Recorder {
 	}
 
 	private void changeRecordBin(Bin newRecordBin) {
-		this.switcher.set("drop", true);
-	    this.currentRecordBin.sendEvent(new EOSEvent());
-		this.pipe.remove(this.currentRecordBin);
-		this.currentRecordBin.stop();
 		
+		final Element last = this.currentRecordBin.getElementsSorted().get(0);
+		Pad lastPad = last.getStaticPad("sink");
+		lastPad.addEventProbe(new Pad.EVENT_PROBE() {
+			
+			
+				@Override
+				public boolean eventReceived(Pad pad, Event event) {
+					if (event instanceof EOSEvent) {
+						System.out.println("EOS received in '"+pad.getName()+"' on '" + last.getName() + "'.");
+						Recorder.this.pipe.remove(Recorder.this.currentRecordBin);
+						Recorder.this.currentRecordBin.stop();
+						pad.removeEventProbe(this);
+						return false;
+					} else {
+						System.out.println("Event received, that is not an eos in '"+pad.getName()+"' on '" + last.getName() + "'.");
+						return true;
+					}
+				}
+			});
+		
+		this.switcher.set("drop", true);
+		Pad sinkPad = this.currentRecordBin.getStaticPad("sink");
+		sinkPad.sendEvent(new EOSEvent());
 		this.pipe.addMany(newRecordBin);
 		Element.linkMany(this.firstBin, newRecordBin);
 		newRecordBin.play();
