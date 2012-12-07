@@ -5,6 +5,7 @@ package Recorder;
 
 import org.gstreamer.Bin;
 import org.gstreamer.Bus;
+import org.gstreamer.Closure;
 import org.gstreamer.Element;
 import org.gstreamer.ElementFactory;
 import org.gstreamer.Event;
@@ -155,19 +156,8 @@ public class Recorder {
 		Element play_queue= ElementFactory.make ("queue", "playback queue");
 		play_queue.set("leaky", 1);
 
-		Element demux = ElementFactory.make("oggdemux", "Ogg demuxer");
-		final Element dec = ElementFactory.make("theoradec", "Theora decoder");
-		playBin.addMany(play_queue, demux, dec, vidSink);
-		Element.linkMany(play_queue,demux);
-		Element.linkMany(dec, vidSink);
-
-		demux.connect(new Element.PAD_ADDED() {
-
-			@Override
-			public void padAdded(Element element, Pad pad) {
-				Element.linkMany(element, dec);
-			}
-		});
+		playBin.addMany(play_queue, vidSink);
+		Element.linkMany(play_queue,vidSink);
 
 		// add a ghost pad, so that the bin is accessible from the outside
 		Pad staticSourcePad = play_queue.getStaticPad("sink");
@@ -181,30 +171,55 @@ public class Recorder {
 		Bin sourceBin = new Bin("source");
 		Element src = ElementFactory.make("tcpserversrc", "tcpserversrc");
 		src.set("port", 5000);
-		Pad pad = src.getStaticPad("src");
-		pad.addEventProbe(new Pad.EVENT_PROBE() {
+		//Pad pad = src.getStaticPad("src");
+		//		pad.addEventProbe(new Pad.EVENT_PROBE() {
+		//
+		//			@Override
+		//			public boolean eventReceived(Pad pad, Event event) {
+		//				System.out.println("Event received: '" + event + "' on pad '" + pad.getName()+"'.");
+		//				if (event instanceof EOSEvent) {
+		//					//Recorder.this.pipe.stop();
+		//					return false;
+		//				} else {
+		//					return false;
+		//				}
+		//			}
+		//		});
+
+		Element demux = ElementFactory.make("oggdemux", "Ogg demuxer");
+		final Element dec = ElementFactory.make("theoradec", "Theora decoder");
+		demux.connect(new Element.PAD_ADDED() {
 
 			@Override
-			public boolean eventReceived(Pad pad, Event event) {
-				System.out.println("Event received: '" + event + "' on pad '" + pad.getName()+"'.");
-				if (event instanceof EOSEvent) {
-					//Recorder.this.pipe.stop();
-					return false;
-				} else {
-					return false;
-				}
+			public void padAdded(Element element, Pad pad) {
+				Element.linkMany(element, dec);
 			}
 		});
-
-		//Element motionDetection = ElementFactory.make("motion", "motion detection");
-		sourceBin.addMany(src);
+		
+		Element motionDetection = ElementFactory.make("motiondetector", "motion detection");
+		motionDetection.set("draw_motion", true);
+		//add motion detection callbacks
+		motionDetection.connect("notify::motion-detected", new Closure() {
+			boolean motionStart = true;
+			@SuppressWarnings("unused") //it is used from the JNA, therefore that it is set as callback
+			public void invoke() {
+				if (motionStart) {
+					System.out.println("Motion start detected");
+				}else {
+					System.out.println("Motion end detected");
+				}
+				motionStart = !motionStart;
+			}
+		});
+		Element ffmpeg = ElementFactory.make("ffmpegcolorspace", "ffmpegcolorspace");
 
 		//link the motion detector and the webcam
-		//sourceBin.addMany(src, motionDetection);
-		// Element.linkMany(src, motionDetection);
+		sourceBin.addMany(src, demux, dec, ffmpeg, motionDetection);
+		Element.linkMany(src, demux);
+		Element.linkMany(dec, ffmpeg, motionDetection);
 
 		// add a ghost pad, so that the bin is accessible from the outside
-		Pad staticSourcePad = src.getStaticPad("src");
+		Pad staticSourcePad = motionDetection.getStaticPad("src");
 		GhostPad ghost = new GhostPad("src", staticSourcePad);
 		sourceBin.addPad(ghost);
 		//return the created sourceBin
