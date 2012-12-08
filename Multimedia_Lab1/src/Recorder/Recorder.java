@@ -12,6 +12,7 @@ import org.gstreamer.Event;
 import org.gstreamer.GhostPad;
 import org.gstreamer.GstObject;
 import org.gstreamer.Pad;
+import org.gstreamer.Pad.EVENT_PROBE;
 import org.gstreamer.Pipeline;
 import org.gstreamer.event.EOSEvent;
 import org.gstreamer.swt.VideoComponent;
@@ -52,6 +53,7 @@ public class Recorder {
 		//create the main playback bin
 		Bin firstBin = new Bin("firstpart");
 		Pipeline pipe = new Pipeline("Webcam Recorder/Player on Server");
+		this.addBusListeners(pipe);
 
 		//create the source of the video for the recorder. To the webcame is a motiondetector connected, but not used at the moment
 		// requires a installed "motion" plugin in gstreamer
@@ -74,9 +76,12 @@ public class Recorder {
 		firstBin.addPad(ghost);
 
 		pipe.addMany(firstBin, fakeRecordBin);
-		Element.linkMany(firstBin, fakeRecordBin);
+		boolean connected = Element.linkMany(firstBin, fakeRecordBin);
+		
+		if (!connected) {
+			throw new IllegalStateException("firstbin cannot be connected with first recording bin");
+		}
 
-		this.addBusListeners(pipe);
 
 		this.currentRecordBin=fakeRecordBin;
 		this.switcher=switcher;
@@ -90,8 +95,7 @@ public class Recorder {
 			@Override
 			public void errorMessage(GstObject source, int code, String message) {
 				// TODO Auto-generated method stub
-				System
-				.out.println("Error Server (" + source.getName() + "): " +message);
+				System.out.println("Error Server (" + source.getName() + "): " +message);
 			}
 		});
 
@@ -111,9 +115,9 @@ public class Recorder {
 				System.out.println("Warning Server (" + source.getName() + "): " + message);
 			}
 		});
-		
+
 		pipe.getBus().connect(new Bus.EOS() {
-			
+
 			@Override
 			public void endOfStream(GstObject source) {
 				System.out.println ("EOS received. Source: '" + source.getName() + "'.");
@@ -136,12 +140,22 @@ public class Recorder {
 	private Bin createRealRecordBin(String fileName) {
 		// assert fileName != null
 		Bin recordBin = new Bin("Recorder subpipe");
+		//create color space changer
+		Element ffmpeg = ElementFactory.make("ffmpegcolorspace", "ffmpeg color space server recordbin");
+		//create encoder and muxer
+		Element enc = ElementFactory.make("theoraenc", "Theora encoder on server");
+		Element mux = ElementFactory.make("oggmux", "ogg muxer on server");
 		// fileSink
 		Element fileSink = ElementFactory.make("filesink", "File Sink");
 		fileSink.set("location", fileName);
-		recordBin.addMany(fileSink);
+		recordBin.addMany(ffmpeg, enc,  mux, fileSink);
+		boolean connected = Element.linkMany(ffmpeg, enc, mux, fileSink);
+		if (!connected) {
+			throw new IllegalStateException("Linking of encoder muxer and fileSInk failed");
+		}
 		// add a ghost pad, so that the bin is accessible from the outside
-		Pad staticSourcePad = fileSink.getStaticPad("sink");
+		Pad staticSourcePad = ffmpeg.getStaticPad("sink");
+
 		GhostPad ghost = new GhostPad("sink", staticSourcePad);
 		recordBin.addPad(ghost);
 
@@ -195,7 +209,7 @@ public class Recorder {
 				Element.linkMany(element, dec);
 			}
 		});
-		
+
 		Element motionDetection = ElementFactory.make("motiondetector", "motion detection");
 		motionDetection.set("draw_motion", true);
 		//add motion detection callbacks
@@ -240,28 +254,28 @@ public class Recorder {
 	public void stopRec() {
 		if (this.isRecording()) {
 			//recording => stop recording
-			final Element fileSink = this.currentRecordBin.getElementByName("File Sink");
-			this.switcher.set("drop", true);
-			Pad pad = fileSink.getStaticPad("sink");
-			pad.addEventProbe(new Pad.EVENT_PROBE() {
-
-				@Override
-				public boolean eventReceived(Pad pad, Event event) {
-					if (event instanceof EOSEvent) {
-						System.out.println("EOS received in filesink");
-						fileSink.stop();
-						pad.removeEventProbe(this);
-						return false;
-					} else {
-						System.out.println("Event received, that is not an eos on fileSink");
-						return true;
-					}
-				}
-			});
-			pad.sendEvent(new EOSEvent());
-			this.isRecording=false;
-			//Bin newFakeBin = this.createFakeRecordBin();
-			//this.changeRecordBin(newFakeBin);
+			//			final Element fileSink = this.currentRecordBin.getElementByName("File Sink");
+			//			this.switcher.set("drop", true);
+			//			Pad pad = fileSink.getStaticPad("sink");
+			//			pad.addEventProbe(new Pad.EVENT_PROBE() {
+			//
+			//				@Override
+			//				public boolean eventReceived(Pad pad, Event event) {
+			//					if (event instanceof EOSEvent) {
+			//						System.out.println("EOS received in filesink");
+			//						fileSink.stop();
+			//						pad.removeEventProbe(this);
+			//						return false;
+			//					} else {
+			//						System.out.println("Event received, that is not an eos on fileSink");
+			//						return true;
+			//					}
+			//				}
+			//			});
+			//			pad.sendEvent(new EOSEvent());
+			//			this.isRecording=false;
+			Bin newFakeBin = this.createFakeRecordBin();
+			this.changeRecordBin(newFakeBin);
 		}
 	}
 
@@ -288,39 +302,22 @@ public class Recorder {
 
 	}
 
-	private void changeRecordBin(Bin newRecordBin) {
-		
+	private void changeRecordBin(final Bin newRecordBin) {
+
 		final Element last = this.currentRecordBin.getElementsSorted().get(0);
 		Pad lastPad = last.getStaticPad("sink");
 		lastPad.addEventProbe(new Pad.EVENT_PROBE() {
-			
-			
-				@Override
-				public boolean eventReceived(Pad pad, Event event) {
-					if (event instanceof EOSEvent) {
-						System.out.println("EOS received in '"+pad.getName()+"' on '" + last.getName() + "'.");
-						Recorder.this.pipe.remove(Recorder.this.currentRecordBin);
-						Recorder.this.currentRecordBin.stop();
-						pad.removeEventProbe(this);
-						return false;
-					} else {
-						System.out.println("Event received, that is not an eos in '"+pad.getName()+"' on '" + last.getName() + "'.");
-						return true;
-					}
-				}
-			});
-		
+
+
+			@Override
+			public boolean eventReceived(Pad pad, Event event) {
+				return Recorder.this.receivedEOSOnRecordBin(newRecordBin, last, pad, event, this);
+			}
+		});
+
 		this.switcher.set("drop", true);
 		Pad sinkPad = this.currentRecordBin.getStaticPad("sink");
 		sinkPad.sendEvent(new EOSEvent());
-		this.pipe.addMany(newRecordBin);
-		Element.linkMany(this.firstBin, newRecordBin);
-		newRecordBin.play();
-		this.switcher.set("drop", false);
-
-		this.currentRecordBin = newRecordBin;
-		//change the isRecording status
-		this.isRecording=!this.isRecording;
 	}
 
 	/**
@@ -337,5 +334,33 @@ public class Recorder {
 	 */
 	public void play() {
 		this.pipe.play();
+	}
+
+	private boolean receivedEOSOnRecordBin(final Bin newRecordBin, final Element last, Pad pad,
+			Event event, EVENT_PROBE probe) {
+		if (event instanceof EOSEvent) {
+			System.out.println("EOS received in '"+pad.getName()+"' on '" + last.getName() + "'.");
+			boolean removed = Recorder.this.pipe.remove(Recorder.this.currentRecordBin);
+			if (!removed) {
+				throw new IllegalStateException("current record bin cannot be removed from the record pipe");
+			}
+			Recorder.this.currentRecordBin.stop();
+			Recorder.this.pipe.addMany(newRecordBin);
+			boolean connected = Element.linkMany(Recorder.this.firstBin, newRecordBin);
+			if (!connected) {
+				throw new IllegalStateException("can not link the firstBin with the new recorder bin");
+			}
+			newRecordBin.play();
+			Recorder.this.switcher.set("drop", false);
+
+			Recorder.this.currentRecordBin = newRecordBin;
+			//change the isRecording status
+			Recorder.this.isRecording=!Recorder.this.isRecording;
+			pad.removeEventProbe(probe);
+			return false;
+		} else {
+			System.out.println("Event received, that is not an eos in '"+pad.getName()+"' on '" + last.getName() + "'.");
+			return true;
+		}
 	}
 }
