@@ -15,6 +15,7 @@ import org.gstreamer.Pad;
 import org.gstreamer.Pad.EVENT_PROBE;
 import org.gstreamer.Pipeline;
 import org.gstreamer.event.EOSEvent;
+import org.gstreamer.lowlevel.GstDateTimeAPI;
 import org.gstreamer.swt.VideoComponent;
 
 /**
@@ -207,6 +208,7 @@ public class Recorder {
 			@Override
 			public void padAdded(Element element, Pad pad) {
 				Element.linkMany(element, dec);
+				pipe.debugToDotFile(Pipeline.DEBUG_GRAPH_SHOW_NON_DEFAULT_PARAMS, "server_running_playback");
 			}
 		});
 
@@ -251,7 +253,7 @@ public class Recorder {
 	 * stops the video recording
 	 * If not recording nothing happens.
 	 */
-	public void stopRec() {
+	public void stopRec(boolean stopPipe) {
 		if (this.isRecording()) {
 			//recording => stop recording
 			//			final Element fileSink = this.currentRecordBin.getElementByName("File Sink");
@@ -275,7 +277,11 @@ public class Recorder {
 			//			pad.sendEvent(new EOSEvent());
 			//			this.isRecording=false;
 			Bin newFakeBin = this.createFakeRecordBin();
-			this.changeRecordBin(newFakeBin);
+			this.changeRecordBin(newFakeBin, stopPipe);
+		} else {
+			if (stopPipe) {
+				this.pipe.stop();
+			}
 		}
 	}
 
@@ -297,12 +303,12 @@ public class Recorder {
 			//not recroding --> start record;
 			//create recorder bin to set the new filename
 			Bin newRecordBin = this.createRealRecordBin(fileName);
-			changeRecordBin(newRecordBin);
+			changeRecordBin(newRecordBin, false);
 		}
 
 	}
 
-	private void changeRecordBin(final Bin newRecordBin) {
+	private void changeRecordBin(final Bin newRecordBin, final boolean stopPipe) {
 
 		final Element last = this.currentRecordBin.getElementsSorted().get(0);
 		Pad lastPad = last.getStaticPad("sink");
@@ -311,7 +317,7 @@ public class Recorder {
 
 			@Override
 			public boolean eventReceived(Pad pad, Event event) {
-				return Recorder.this.receivedEOSOnRecordBin(newRecordBin, last, pad, event, this);
+				return Recorder.this.receivedEOSOnRecordBin(newRecordBin, last, pad, event, this, stopPipe);
 			}
 		});
 
@@ -325,8 +331,7 @@ public class Recorder {
 	 */
 	public void stop() {
 		//stop everything
-		this.stopRec();
-		this.pipe.stop();
+		this.stopRec(true);
 	}
 
 	/**
@@ -337,7 +342,7 @@ public class Recorder {
 	}
 
 	private boolean receivedEOSOnRecordBin(final Bin newRecordBin, final Element last, Pad pad,
-			Event event, EVENT_PROBE probe) {
+			Event event, EVENT_PROBE probe, boolean stopPipe) {
 		if (event instanceof EOSEvent) {
 			System.out.println("EOS received in '"+pad.getName()+"' on '" + last.getName() + "'.");
 			boolean removed = Recorder.this.pipe.remove(Recorder.this.currentRecordBin);
@@ -357,6 +362,10 @@ public class Recorder {
 			//change the isRecording status
 			Recorder.this.isRecording=!Recorder.this.isRecording;
 			pad.removeEventProbe(probe);
+			this.pipe.debugToDotFile(Pipeline.DEBUG_GRAPH_SHOW_NON_DEFAULT_PARAMS, "server_isrecording_"+this.isRecording);
+			if (stopPipe) {
+				this.pipe.stop();
+			}
 			return false;
 		} else {
 			System.out.println("Event received, that is not an eos in '"+pad.getName()+"' on '" + last.getName() + "'.");

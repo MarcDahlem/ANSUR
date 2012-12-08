@@ -635,7 +635,7 @@ public class Gui {
 	 * stops the recording on the connected recorder
 	 */
 	private void stopRecording() {
-		this.recorder.stopRec();
+		this.recorder.stopRec(false);
 		//TODO button_record.setText("Record");
 	}
 
