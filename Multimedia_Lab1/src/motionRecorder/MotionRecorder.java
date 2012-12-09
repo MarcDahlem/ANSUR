@@ -5,6 +5,8 @@ package motionRecorder;
 
 import java.util.List;
 
+import javax.swing.event.EventListenerList;
+
 import org.gstreamer.Bin;
 import org.gstreamer.Bus;
 import org.gstreamer.Closure;
@@ -50,6 +52,10 @@ public class MotionRecorder {
 
 	private Bin currentPlayBin;
 
+	private EventListenerList listeners;
+
+	private boolean stopped;
+
 	/** The default constructor for this recorder.
 	 * It will set the values of this auto-recording pipe.
 	 * To initialize it use {@link #init()} and after that run the recorder with {@link #run()}
@@ -59,6 +65,23 @@ public class MotionRecorder {
 	 */
 	public MotionRecorder(int port) {
 		this.port = port;
+		this.listeners = new EventListenerList();
+		this.stopped=false;
+	}
+
+	public void addMotionRecorderListener( MotionRecorderListener listener ) {
+		listeners.add(MotionRecorderListener.class, listener);
+	}
+
+	public void removeMotionRecorderListener( MotionRecorderListener listener ) {
+		listeners.remove( MotionRecorderListener.class, listener );
+	}
+
+	private synchronized void notifyPipelineEvent(MotionRecorderEvent event ) {
+		for (MotionRecorderListener l : listeners.getListeners(MotionRecorderListener.class) ) {
+			l.eventAppeared(event);
+			System.out.println(event.getEventType().name() + " Client (" + event.getGstSource().getName() + "): " +event.getMessage());
+		}
 	}
 
 	/**
@@ -107,38 +130,54 @@ public class MotionRecorder {
 	}
 
 	private void addBusListeners(Pipeline pipe) {
-		pipe.getBus().connect(new Bus.ERROR() {
+		//get the bus
+		Bus bus = pipe.getBus();
+
+		//connect error messages na stop the pipe if an error occured
+		bus.connect(new Bus.ERROR() {
 
 			@Override
 			public void errorMessage(GstObject source, int code, String message) {
-				// TODO Auto-generated method stub
-				System.out.println("Error Server (" + source.getName() + "): " +message);
+				MotionRecorderEvent event = new MotionRecorderEvent(MotionRecorder.this, source, MotionRecorderEventType.GST_ERROR, message);
+				MotionRecorder.this.notifyPipelineEvent(event);
+				MotionRecorder.this.stop();
 			}
 		});
 
-		pipe.getBus().connect(new Bus.INFO() {
+		//connect info messages
+		bus.connect(new Bus.INFO() {
 
 			@Override
 			public void infoMessage(GstObject source, int code, String message) {
-				System.out.println("INFO Server (" + source.getName() + "): " + message);
-
+				MotionRecorderEvent event = new MotionRecorderEvent(MotionRecorder.this, source, MotionRecorderEventType.GST_INFO, message);
+				MotionRecorder.this.notifyPipelineEvent(event);
 			}
 		});
 
-		pipe.getBus().connect(new Bus.WARNING() {
+		//connect warnings
+		bus.connect(new Bus.WARNING() {
 
 			@Override
 			public void warningMessage(GstObject source, int code, String message) {
-				System.out.println("Warning Server (" + source.getName() + "): " + message);
+				MotionRecorderEvent event = new MotionRecorderEvent(MotionRecorder.this, source, MotionRecorderEventType.GST_WARNING, message);
+				MotionRecorder.this.notifyPipelineEvent(event);
 			}
 		});
 
-		pipe.getBus().connect(new Bus.EOS() {
+		//connect EOS detection and stop the pipe if EOS detected
+		bus.connect(new Bus.EOS() {
+
+			private boolean reantrance = false;
 
 			@Override
 			public void endOfStream(GstObject source) {
-				System.out.println ("EOS received. Source: '" + source.getName() + "'.");
-				MotionRecorder.this.stop();
+
+				if (!this.reantrance) {
+					this.reantrance=true;
+					MotionRecorder.this.stop();
+					MotionRecorderEvent event = new MotionRecorderEvent(MotionRecorder.this, source, MotionRecorderEventType.STOP, "EOS detected");
+					MotionRecorder.this.notifyPipelineEvent(event);
+				}
 			}
 		});
 	}
@@ -181,7 +220,7 @@ public class MotionRecorder {
 
 	private Bin createPlayBin() {
 		Bin playBin = new Bin("playback pipe on port " + this.port);
-		Element vidSink = ElementFactory.make("fakesink", "fakesink for streamplayback on port " + this.port);
+		Element vidSink = this.createFakeSink();
 
 		Element play_queue= ElementFactory.make ("queue", "playback queue on port "+this.port);
 		play_queue.set("leaky", 1);
@@ -197,10 +236,15 @@ public class MotionRecorder {
 		return playBin;
 	}
 
+	private Element createFakeSink() {
+		return ElementFactory.make("fakesink", "fakesink for streamplayback on port " + this.port);
+	}
+
 	private Bin createSourceBin() {
 		Bin sourceBin = new Bin("source");
 		Element src = ElementFactory.make("tcpserversrc", "tcpserversrc on port "+this.port);
 		src.set("port", this.port);
+		src.set("host", "0.0.0.0");
 
 		Element demux = ElementFactory.make("oggdemux", "Ogg demuxer on port " + this.port);
 		final Element dec = ElementFactory.make("theoradec", "Theora decoder on port " + this.port);
@@ -239,8 +283,18 @@ public class MotionRecorder {
 		Pad staticSourcePad = motionDetection.getStaticPad("src");
 		GhostPad ghost = new GhostPad("src", staticSourcePad);
 		sourceBin.addPad(ghost);
+
 		//return the created sourceBin
 		return sourceBin;
+		//		Bin newSBin = new Bin("source");
+		//		Element vid = ElementFactory.make("v4l2src", "video");
+		//		newSBin.addMany(vid);
+		// add a ghost pad, so that the bin is accessible from the outside
+		//		Pad staticSourcePad2 = vid.getStaticPad("src");
+		//		GhostPad ghost2 = new GhostPad("src", staticSourcePad2);
+		//		newSBin.addPad(ghost2);
+
+		//return newSBin;
 	}
 
 	/*
@@ -312,13 +366,26 @@ public class MotionRecorder {
 	 */
 	public void stop() {
 		//stop everything
-		this.stopRec(true);
+		//check for reentrance and stop
+		if (!this.stopped) {
+			// set flag to avoid reentrance and stop the pipe.
+			// Stopping the pipe should end in an EOS detected message on the bus, which will inform all listeners
+			this.stopped = true;
+			this.stopRec(true);
+		}
 	}
 
 	/**
 	 * starts the recorder. This will only play video, but not capturing video
 	 */
 	public void run() {
+		if (this.pipe == null) {
+			throw new IllegalStateException("pipe not initialized");
+		}
+
+		if (this.stopped) {
+			throw new IllegalStateException("pipe only once useable. Build a new pipe");
+		}
 		this.pipe.play();
 	}
 
@@ -353,11 +420,15 @@ public class MotionRecorder {
 			return true;
 		}
 	}
-	
-	public void setPlayer(VideoComponent vid) {
+
+	public void setPlayer(VideoComponent vid, final boolean connect) {
 		final Element vidSink = vid.getElement();
-		vidSink.setName("SWTVideo on port " + this.port);
-		// delete the old player (normally fakesink) and connect the new player
+		if (connect) {
+			vidSink.setName("SWTVideo on port " + this.port);
+		} else {
+			//assert vidSink.getName().equals("SWTVideo on port " + this.port);
+		}
+		// delete the old player (fakesink if connect and vidsink if disconnect) and connect the new player
 		List<Element> elementsSorted = this.currentPlayBin.getElementsSorted();
 		final Element last = elementsSorted.get(0);
 		final Element secondLast = elementsSorted.get(1);
@@ -365,26 +436,47 @@ public class MotionRecorder {
 		int numElements = elementsSorted.size();
 		//assert num elements >=2 (minimum queue and playback device)
 		Element first = elementsSorted.get(numElements-1);
-		//block the outgoiding pad of the first element (should be queue)
-		final Pad firstPad = first.getStaticPad("src");
-		lastPad.addEventProbe(new Pad.EVENT_PROBE() {
 
-
-			@Override
-			public boolean eventReceived(Pad pad, Event event) {
-				return MotionRecorder.this.handleEOSOnPlayBin(vidSink, last, secondLast, pad, firstPad, event, this);
+		//check if its playing. If not the elements can be changed without problems. And on the other hand does the blocking not return when no dataflow is handled.
+		if (!this.pipe.isPlaying()) {
+			// not running, means stopped or not started yet. Emulate EOS received
+			if (connect) {
+				this.handleEOSOnPlayBin(vidSink, last, secondLast, lastPad, null, new EOSEvent(), null);
+			} else {
+				// assert last == vidSink
+				Element newFakeSink = MotionRecorder.this.createFakeSink();
+				this.handleEOSOnPlayBin(newFakeSink, last, secondLast, lastPad, null, new EOSEvent(), null);
 			}
-		});
-		firstPad.setBlocked(true);
-		
-		
-		//get the next element and send an eos event on it (should normally be the playback device (fakesink or video)
-		Element second = elementsSorted.get(numElements-2);
-		Pad sinkPad = second.getStaticPad("sink");
-		sinkPad.sendEvent(new EOSEvent());
+		} else {
+			// pipe is running, change it dynamically
+			//get the first src pad in the pipeline to block it
+			final Pad firstPad = first.getStaticPad("src");
+			//block the outgoing pad of the first element (should be queue)
+			lastPad.addEventProbe(new Pad.EVENT_PROBE() {
+
+
+				@Override
+				public boolean eventReceived(Pad pad, Event event) {
+					if (connect) {
+						return MotionRecorder.this.handleEOSOnPlayBin(vidSink, last, secondLast, pad, firstPad, event, this);
+					} else {
+						// assert last == vidSink
+						Element newFakeSink = MotionRecorder.this.createFakeSink();
+						return MotionRecorder.this.handleEOSOnPlayBin(newFakeSink, last, secondLast, pad, firstPad, event, this);
+					}
+				}
+			});
+			firstPad.setBlocked(true);
+
+
+			//get the next element and send an eos event on it (should normally be the playback device (fakesink or video)
+			Element second = elementsSorted.get(numElements-2);
+			Pad sinkPad = second.getStaticPad("sink");
+			sinkPad.sendEvent(new EOSEvent());
+		}
 	}
 
-	protected boolean handleEOSOnPlayBin(Element vidSink, Element last, Element secondLast, Pad occuredPad, Pad blockedPad, Event event, EVENT_PROBE probe) {
+	protected boolean handleEOSOnPlayBin(Element newSink, Element last, Element secondLast, Pad occuredPad, Pad blockedPad, Event event, EVENT_PROBE probe) {
 		if (event instanceof EOSEvent) {
 			System.out.println("EOS received in '"+occuredPad.getName() +"' on '" + last.getName() + "'.");
 			boolean removed = this.currentPlayBin.remove(last);
@@ -392,18 +484,28 @@ public class MotionRecorder {
 				throw new IllegalStateException("current play bin cannot be removed from the pipe on port " + this.port);
 			}
 			last.stop();
-			this.currentPlayBin.addMany(vidSink);
-			boolean connected = Element.linkMany(secondLast, vidSink);
+			this.currentPlayBin.addMany(newSink);
+			boolean connected = Element.linkMany(secondLast, newSink);
 			if (!connected) {
 				throw new IllegalStateException("can not link the new vidSink on port " + this.port);
 			}
-			vidSink.play();
-			blockedPad.setBlocked(false);
-			occuredPad.removeEventProbe(probe);
+			newSink.play();
+			//remove the blocking status if something is blocked
+			if (blockedPad != null) {
+				//blocked => unblock
+			    blockedPad.setBlocked(false);
+			}
+			
+			//remove the probe if there is one connected
+			if (probe != null) {
+				// connecnted probe => disconnect it
+				occuredPad.removeEventProbe(probe);
+			}
 			return false;
 		} else {
 			System.out.println("Event received, that is not an eos in '"+occuredPad.getName()+"' on '"+ last.getName() + "'.");
 			return true;
 		}
 	}
+
 }

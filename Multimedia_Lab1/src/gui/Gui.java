@@ -39,7 +39,12 @@ import org.eclipse.swt.widgets.Layout;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
+import org.gstreamer.GstObject;
 import org.gstreamer.swt.VideoComponent;
+
+import motionRecorder.MotionRecorderEvent;
+import motionRecorder.MotionRecorderEventType;
+import motionRecorder.MotionRecorderListener;
 
 
 public class Gui {
@@ -68,6 +73,10 @@ public class Gui {
 
 	private Composite menuBarDefaultComp;
 	private Composite menuBarFSComp;
+	private MotionRecorderListener pipeListener;
+	private Button button_stop;
+	private Button button_play;
+	private Button button_record;
 
 	/**
 	 * The constructur of the Gui initialises counters, listeners and the timer.
@@ -137,6 +146,77 @@ public class Gui {
 				Gui.this.vid.removeMouseMoveListener(Gui.this.listener_mouseMove_wMen);
 			}
 
+		};
+
+		//create a listener for the pipelines
+		this.pipeListener = new MotionRecorderListener() {
+
+			@Override
+			public void eventAppeared(MotionRecorderEvent event) {
+				// TODO Auto-generated method stub
+				MotionRecorderEventType eventType = event.getEventType();
+				final String message = event.getMessage();
+				final GstObject gstSource = event.getGstSource();
+
+
+				switch (eventType) {
+				case STOP:
+					Gui.this.display.asyncExec(new Runnable() {
+
+						@Override
+						public void run() {
+							Gui.this.StopRecorder();
+							MessageBox msgBox = new MessageBox(Gui.this.display.getActiveShell(), SWT.OK);
+							msgBox.setMessage("EOS received from '" + gstSource.getName() + "'. Pipe stopped.");
+							msgBox.setText("Information");
+							msgBox.open();
+						}
+					});
+					break;
+				case GST_ERROR:
+					Gui.this.display.asyncExec(new Runnable() {
+
+						@Override
+						public void run() {
+							Gui.this.StopRecorder();
+							MessageBox msgBox = new MessageBox(Gui.this.display.getActiveShell(), SWT.OK|SWT.ERROR);
+							msgBox.setMessage("Error on '" + gstSource.getName()+ "': "+ message);
+							msgBox.setText("Error");
+							msgBox.open();
+						}
+					});
+					break;
+				case GST_INFO:
+					Gui.this.display.asyncExec(new Runnable() {
+
+						@Override
+						public void run() {
+							MessageBox msgBox = new MessageBox(Gui.this.display.getActiveShell(), SWT.OK);
+							msgBox.setMessage("Info from '" + gstSource.getName() + "': " + message);
+							msgBox.setText("Information");
+							msgBox.open();
+						}
+					});
+					break;
+				case GST_WARNING:
+					Gui.this.display.asyncExec(new Runnable() {
+
+						@Override
+						public void run() {
+							MessageBox msgBox = new MessageBox(Gui.this.display.getActiveShell(), SWT.OK| SWT.ERROR);
+							msgBox.setMessage("Warning from '" + gstSource.getName() + "': " + message+ "\n It CAN influence the work behavior and it could lead to problems during the execution...");
+							msgBox.setText("Warning");
+							msgBox.open();
+						}
+					});
+					break;
+				default:
+					MessageBox msgBox = new MessageBox(Gui.this.display.getActiveShell(), SWT.OK);
+					msgBox.setMessage("Unknown event appeared: '"+eventType.name() + "' on '" + event.getGstSource().getName() + "': " +event.getMessage());
+					msgBox.setText("Information");
+					msgBox.open();
+				}
+			}
 		};
 
 	}
@@ -296,13 +376,6 @@ public class Gui {
 			public void widgetSelected(SelectionEvent e) {
 				//if the play button is clicked, the recorder should play the video from the webcam
 				Gui.this.playRecorder();
-				//set button enablements
-				button_play.setEnabled(false);
-				button_stop.setEnabled(true);
-				button_record.setEnabled(true);
-				
-				//set the playbutton background color
-				button_play.setBackground(Gui.this.display.getSystemColor(SWT.COLOR_GREEN));
 			}
 		});
 
@@ -310,15 +383,6 @@ public class Gui {
 		button_stop.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				Gui.this.StopRecorder();
-				//set button enablements
-				button_play.setEnabled(true);
-				button_stop.setEnabled(false);
-				button_record.setEnabled(false);
-				button_record.setSelection(false);
-				
-				//set button colors
-				button_record.setBackground(Gui.this.display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
-				button_play.setBackground(Gui.this.display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
 			}
 		});
 
@@ -355,6 +419,11 @@ public class Gui {
 
 		// and finally add a new line with the preference buttons
 		addPreferenceButtons(comp);
+
+		//set the buttons
+		this.button_stop = button_stop;
+		this.button_play = button_play;
+		this.button_record = button_record;
 	}
 
 	/** Adds prefernce buttons to the given composite
@@ -368,13 +437,13 @@ public class Gui {
 		GridData data = new GridData(SWT.FILL, SWT.NONE, true, false);
 		data.horizontalSpan=3;
 		pref.setLayoutData(data);
-		
+
 		addHiddenField(pref);
-		
+
 		//create a sub Composit for this buttons
 		Composite middle = new Composite(pref, SWT.BORDER);
 		middle.setLayout(new GridLayout(3, false));
-		
+
 		//add a show fps button
 		final Button button_fps = new Button (middle, SWT.TOGGLE);
 		button_fps.setText ("showFPS");
@@ -645,18 +714,59 @@ public class Gui {
 	 */
 
 	private void playRecorder() {
+		this.setButtonsConnected();
 		MotionRecorder recorder = new MotionRecorder(5000);
+		recorder.addMotionRecorderListener(this.pipeListener);
 		recorder.init();
+		recorder.setPlayer(this.vid, true);
 		recorder.run();
-		recorder.setPlayer(this.vid);
 		this.recorder = recorder;
+	}
+
+	private void setButtonsConnected() {
+		//set button enablements
+		button_play.setEnabled(false);
+		button_stop.setEnabled(true);
+		button_record.setEnabled(true);
+
+		//set the playbutton background color
+		button_play.setBackground(Gui.this.display.getSystemColor(SWT.COLOR_GREEN));
 	}
 
 	/**
 	 * stops the recorder (means also, that the recording is stopped)
 	 */
 	private void StopRecorder() {
-		this.recorder.stop();
+		this.setButtonsDisconnected();
+		if (this.recorder != null) {
+			this.recorder.stop();
+			this.recorder.setPlayer(this.vid, false);
+			this.recorder.removeMotionRecorderListener(this.pipeListener);
+			this.recorder = null;
+		}
+
+	}
+
+	private void setButtonsDisconnected() {
+		//set button enablements
+		if (!this.button_play.isDisposed()) {
+			this.button_play.setEnabled(true);
+			//set button color back
+			this.button_play.setBackground(Gui.this.display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
+		}
+
+		if (!this.button_stop.isDisposed()) {
+
+			this.button_stop.setEnabled(false);
+		}
+
+		if (!this.button_record.isDisposed()) {
+			this.button_record.setEnabled(false);
+			this.button_record.setSelection(false);
+
+			//set button color back
+			this.button_record.setBackground(Gui.this.display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
+		}
 
 	}
 
