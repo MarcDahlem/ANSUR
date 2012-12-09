@@ -39,6 +39,7 @@ public class ConnectionPipe {
 	public ConnectionPipe(String host, int port) {
 		this.host = host;
 		this.port = port;
+		this.stopped=false;
 		this.listeners = new EventListenerList();
 	}
 	

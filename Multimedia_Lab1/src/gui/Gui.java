@@ -53,7 +53,7 @@ public class Gui {
 			@Override
 			public void eventAppeared(ConnectionPipeEvent event) {
 				// TODO Auto-generated method stub
-				ConnectionPipeEventType eventType = event.getEventType();
+				final ConnectionPipeEventType eventType = event.getEventType();
 				final String message = event.getMessage();
 				final GstObject gstSource = event.getGstSource();
 
@@ -110,8 +110,16 @@ public class Gui {
 					});
 					break;
 				default:
-					System.out.println("GUI:"+eventType.name() + " Client (" + event.getGstSource().getName() + "): " +event.getMessage());
+					Gui.this.display.asyncExec(new Runnable() {
 
+						@Override
+						public void run() {
+							MessageBox msgBox = new MessageBox(Gui.this.display.getActiveShell(), SWT.OK);
+							msgBox.setMessage("Unknown event appeared: '"+eventType.name() + "' on '" + gstSource.getName() + "': " +message);
+							msgBox.setText("Information");
+							msgBox.open();
+						}
+					});
 				}
 			}
 		};
@@ -268,7 +276,7 @@ public class Gui {
 	}
 
 	/**
-	 * Start/restart the recorder. After that the webcame is played, but nothing recorded.
+	 * Start a new connection pipeline.
 	 */
 
 	private void connect() {
