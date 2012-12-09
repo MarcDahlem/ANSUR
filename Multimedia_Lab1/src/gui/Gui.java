@@ -153,8 +153,7 @@ public class Gui {
 
 			@Override
 			public void eventAppeared(MotionRecorderEvent event) {
-				// TODO Auto-generated method stub
-				MotionRecorderEventType eventType = event.getEventType();
+				final MotionRecorderEventType eventType = event.getEventType();
 				final String message = event.getMessage();
 				final GstObject gstSource = event.getGstSource();
 
@@ -211,10 +210,16 @@ public class Gui {
 					});
 					break;
 				default:
-					MessageBox msgBox = new MessageBox(Gui.this.display.getActiveShell(), SWT.OK);
-					msgBox.setMessage("Unknown event appeared: '"+eventType.name() + "' on '" + event.getGstSource().getName() + "': " +event.getMessage());
-					msgBox.setText("Information");
-					msgBox.open();
+					Gui.this.display.asyncExec(new Runnable() {
+
+						@Override
+						public void run() {
+							MessageBox msgBox = new MessageBox(Gui.this.display.getActiveShell(), SWT.OK);
+							msgBox.setMessage("Unknown event appeared: '"+eventType.name() + "' on '" + gstSource.getName() + "': " +message);
+							msgBox.setText("Information");
+							msgBox.open();
+						}
+					});
 				}
 			}
 		};
