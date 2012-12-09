@@ -10,7 +10,9 @@
  * 		 It is shown menu_off_time ms (default 3000) after movement of the curser stopped. Then it will switch back to MODE2. 
  */
 
-package GUI;
+package gui;
+
+import motionRecorder.MotionRecorder;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
@@ -39,7 +41,6 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.gstreamer.swt.VideoComponent;
 
-import Recorder.Recorder;
 
 public class Gui {
 
@@ -55,7 +56,7 @@ public class Gui {
 
 	private Display display; //display of the gui
 	private VideoComponent vid; //the videocomponent, that has to be shiftet around when changing to fullscreen or changing menu on/off
-	private Recorder recorder;  //the gstreamer recorder, that is to be controlled with this gui
+	private MotionRecorder recorder;  //the gstreamer recorder, that is to be controlled with this gui
 
 	private KeyListener listener_keypress; //listener that is used to connect keypresses to actions 
 	private Image bgImmage; //the current background image, computed on every rezise of the window
@@ -644,7 +645,11 @@ public class Gui {
 	 */
 
 	private void playRecorder() {
-		this.recorder.play();
+		MotionRecorder recorder = new MotionRecorder(5000);
+		recorder.init();
+		recorder.run();
+		recorder.setPlayer(this.vid);
+		this.recorder = recorder;
 	}
 
 	/**
@@ -704,27 +709,4 @@ public class Gui {
 		this.vid.showFPS(useFPS);
 	}
 
-	/**
-	 * 
-	 * @return the VideoComponent that has to be connected with a playback device.
-	 */
-	public VideoComponent getVideoComponent() {
-		return this.vid;
-	}
-
-	/** Sets the recorder that this GUI will control.
-	 * Has to be set before running the gui with {@link #run()}
-	 * 
-	 * @param rec the recorder, that should be controlled.
-	 * 
-	 * @throws IllegalArgumentException if the given recorder is null
-	 */
-	public void setRecorder(Recorder rec) {
-		//check if the given recorder is null and set it if not. Otherwise throw a exception
-		if (rec != null) {
-			this.recorder=rec;
-		} else {
-			throw new IllegalArgumentException("Recorder cannot be null");
-		}
-	}
 }
