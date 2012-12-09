@@ -34,6 +34,7 @@ import connectionPipe.ConnectionPipe;
 import connectionPipe.ConnectionPipeEvent;
 import connectionPipe.ConnectionPipeEventType;
 import connectionPipe.ConnectionPipeListener;
+import data.RecorderHost;
 
 
 public class Gui {
@@ -45,8 +46,12 @@ public class Gui {
 	private Button button_stop;
 	private Button button_play;
 	private Button button_settings;
+	protected RecorderHost host;
 
 	public Gui() {
+		//set the default recoder host
+		this.host=new RecorderHost("localhost", 5000);
+		
 		//create a listener for the pipelines
 		this.pipeListener = new ConnectionPipeListener() {
 
@@ -250,8 +255,16 @@ public class Gui {
 
 		//add action to the settings button
 		button_settings.addSelectionListener(new SelectionAdapter() {
+			@Override
 			public void widgetSelected(SelectionEvent e) {
 				//TODO settings (server, port, ...)
+				Shell shell = Gui.this.display.getActiveShell();
+				ClientSettingsDialog settingsDialog = new ClientSettingsDialog(shell, Gui.this.host);
+				RecorderHost recorderHost = settingsDialog.open();
+				if (recorderHost != null) {
+					//not cancelled
+					Gui.this.host = recorderHost;
+				}
 			}
 		});
 		//add another empty layout at the right side so that the buttons are centered. It has to grab horizontal size
@@ -282,7 +295,7 @@ public class Gui {
 	private void connect() {
 		this.setButtonsConnected();
 		//in order to connect create a new pipe, initalize it and run it
-		ConnectionPipe pipe = new ConnectionPipe("localhost", 5000);
+		ConnectionPipe pipe = new ConnectionPipe(this.host.getHostName(), this.host.getPort());
 		pipe.addConnectionPipeListener(this.pipeListener);
 		pipe.init();
 		pipe.run();
