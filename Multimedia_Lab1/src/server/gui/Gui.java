@@ -10,7 +10,11 @@
  * 		 It is shown menu_off_time ms (default 3000) after movement of the curser stopped. Then it will switch back to MODE2. 
  */
 
-package GUI;
+package server.gui;
+
+import java.io.IOException;
+import java.util.ArrayList;
+
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
@@ -37,25 +41,32 @@ import org.eclipse.swt.widgets.Layout;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
+import org.gstreamer.GstObject;
 import org.gstreamer.swt.VideoComponent;
 
-import Recorder.Recorder;
+import server.connectionManager.ConnectionEvent;
+import server.connectionManager.ConnectionEventType;
+import server.connectionManager.ConnectionListener;
+import server.connectionManager.ConnectionManager;
+import server.motionRecorder.MotionRecorder;
+import server.motionRecorder.MotionRecorderEvent;
+import server.motionRecorder.MotionRecorderEventType;
+import server.motionRecorder.MotionRecorderListener;
+
+
 
 public class Gui {
 
-	//These Strings are used to build the filename, where the recorded files are safed.
+	private static final int SERVER_PORT = 5000;
+
+	//These Strings are used to build the filename, where the recorded files are saved.
 	private static String CapturingPath = null;
-	private static final String CapturingName = "testcambin";
-	private static final String CapturingEnding = ".ogg";
 
-
-
-	private int recorderCounter; // counter for the recording name. Creates name<counter>.avi files every time a new recording is started.
 	private int menu_off_time = 3000; // time until the menu in fullscreen mode turns off in ms
 
 	private Display display; //display of the gui
-	private VideoComponent vid; //the videocomponent, that has to be shiftet around when changing to fullscreen or changing menu on/off
-	private Recorder recorder;  //the gstreamer recorder, that is to be controlled with this gui
+	private volatile VideoComponent vid; //the videocomponent, that has to be shifted around when changing to fullscreen or changing menu on/off
+	private MotionRecorder current_recorder;  //the gstreamer recorder, that is to be controlled with this gui
 
 	private KeyListener listener_keypress; //listener that is used to connect keypresses to actions 
 	private Image bgImmage; //the current background image, computed on every rezise of the window
@@ -67,6 +78,13 @@ public class Gui {
 
 	private Composite menuBarDefaultComp;
 	private Composite menuBarFSComp;
+	private MotionRecorderListener listener_pipe;
+	private Button button_stop;
+	private Button button_play;
+	private Button button_record;
+	private ConnectionListener listener_connectionManager;
+	private ConnectionManager currentConnectionManager;
+	private volatile ArrayList<MotionRecorder> pipeList;
 
 	/**
 	 * The constructur of the Gui initialises counters, listeners and the timer.
@@ -75,8 +93,8 @@ public class Gui {
 	 * And {@link #run()} after that to run the gui, until it will be disposed.
 	 */
 	public Gui() {
-		//set initial values for the filename counter
-		this.recorderCounter=0;
+		//create the list containing all recorders for the connect streams
+		this.pipeList = new ArrayList<MotionRecorder>();
 
 		//create the listener to react on key presses
 		this.listener_keypress = new KeyListener() {
@@ -138,6 +156,170 @@ public class Gui {
 
 		};
 
+		//create a listener for the pipelines
+		this.listener_pipe = new MotionRecorderListener() {
+
+			@Override
+			public void eventAppeared(MotionRecorderEvent event) {
+				final MotionRecorderEventType eventType = event.getEventType();
+				final String message = event.getMessage();
+				final GstObject gstSource = event.getGstSource();
+				final MotionRecorder source = (MotionRecorder)event.getSource();
+
+
+				switch (eventType) {
+				case STOP:
+					Gui.this.display.asyncExec(new Runnable() {
+
+						@Override
+						public void run() {
+							Gui.this.stopRecorder(source);
+							MessageBox msgBox = new MessageBox(Gui.this.display.getShells()[0], SWT.OK|SWT.ICON_WORKING);
+							msgBox.setMessage("EOS received from '" + gstSource.getName() + "'. Pipe stopped.");
+							msgBox.setText("Information");
+							msgBox.open();
+						}
+					});
+					break;
+				case GST_ERROR:
+					Gui.this.display.asyncExec(new Runnable() {
+
+						@Override
+						public void run() {
+							Gui.this.stopRecorder(source);
+							MessageBox msgBox = new MessageBox(Gui.this.display.getShells()[0], SWT.OK|SWT.ERROR);
+							msgBox.setMessage("Error on '" + gstSource.getName()+ "': "+ message);
+							msgBox.setText("Error");
+							msgBox.open();
+						}
+					});
+					break;
+				case GST_INFO:
+					Gui.this.display.asyncExec(new Runnable() {
+
+						@Override
+						public void run() {
+							MessageBox msgBox = new MessageBox(Gui.this.display.getShells()[0], SWT.OK | SWT.ICON_INFORMATION);
+							msgBox.setMessage("Info from '" + gstSource.getName() + "': " + message);
+							msgBox.setText("Information");
+							msgBox.open();
+						}
+					});
+					break;
+				case GST_WARNING:
+					Gui.this.display.asyncExec(new Runnable() {
+
+						@Override
+						public void run() {
+							MessageBox msgBox = new MessageBox(Gui.this.display.getShells()[0], SWT.OK| SWT.ICON_WARNING);
+							msgBox.setMessage("Warning from '" + gstSource.getName() + "': " + message+ "\n It CAN influence the work behavior and it could lead to problems during the execution...");
+							msgBox.setText("Warning");
+							msgBox.open();
+						}
+					});
+					break;
+				case MOTION_START:
+					Gui.this.display.asyncExec(new Runnable() {
+						
+						@Override
+						public void run() {
+							//switch video sink to the latest motion detection stream
+							if (source != Gui.this.current_recorder) {
+								if (Gui.this.current_recorder != null) {
+									Gui.this.current_recorder.setPlayer(Gui.this.vid, false);
+								}
+								//set the new video sink
+								Gui.this.current_recorder = source;
+								source.setPlayer(Gui.this.vid, true);
+							}
+							// update the overlay
+							Gui.this.vid.setOverlay("Motion recording started to file '" + message + "'.");
+						}
+					});
+					break;
+				case MOTION_END:
+					//TODO filename in list for check on download if it is still recording.
+					Gui.this.display.asyncExec(new Runnable() {
+						
+						@Override
+						public void run() {
+							// update the overlay
+							Gui.this.vid.setOverlay("Motion recording stopped.");
+						}
+					});
+					break;
+				default:
+					Gui.this.display.asyncExec(new Runnable() {
+
+						@Override
+						public void run() {
+							MessageBox msgBox = new MessageBox(Gui.this.display.getShells()[0], SWT.OK| SWT.ICON_INFORMATION);
+							msgBox.setMessage("Unknown event appeared: '"+eventType.name() + "' on '" + gstSource.getName() + "': " +message);
+							msgBox.setText("Information");
+							msgBox.open();
+						}
+					});
+				}
+			}
+		};
+
+		this.listener_connectionManager = new ConnectionListener() {
+
+			@Override
+			public void eventAppeared(ConnectionEvent event) {
+				final ConnectionEventType eventType = event.getEventType();
+				final int eventPort = event.getPort();
+				switch (eventType) {
+				case CLIENT_START:
+					// Assert.isTrue(Gui.CapturingPath != null);
+					MotionRecorder recorder = new MotionRecorder(eventPort, Gui.CapturingPath);
+					recorder.addMotionRecorderListener(Gui.this.listener_pipe);
+					recorder.init();
+					//connect video if its the first stream
+					if (Gui.this.current_recorder == null) {
+						recorder.setPlayer(Gui.this.vid, true);
+						Gui.this.current_recorder = recorder;
+					}
+					Gui.this.pipeList.add(recorder);
+					recorder.run();
+					vid.setOverlay("Client connected on port " + eventPort);
+					vid.showOverlay(true);
+					break;
+				default:
+					Gui.this.display.asyncExec(new Runnable() {
+
+						@Override
+						public void run() {
+							MessageBox msgBox = new MessageBox(Gui.this.display.getShells()[0], SWT.OK| SWT.ICON_INFORMATION);
+							msgBox.setMessage("Unknown event appeared: '"+eventType.name() + "' on port " +eventPort);
+							msgBox.setText("Information");
+							msgBox.open();
+						}
+					});
+				}
+			}
+		};
+	}
+
+	private void stopRecorder(MotionRecorder recorder) {
+		//first delete the recorder from the known recorders
+		this.pipeList.remove(recorder);
+
+		//check if it is the current visible recorder and if, delete the video window out of it
+		if (recorder == this.current_recorder) {
+			this.current_recorder.setPlayer(this.vid, false);
+			// set the first stream if existent as new playback stream
+			MotionRecorder newDisplayingRecorder = null;
+			if(!this.pipeList.isEmpty()) {
+				newDisplayingRecorder = this.pipeList.get(0);
+				newDisplayingRecorder.setPlayer(this.vid, true);
+			}
+			this.current_recorder = newDisplayingRecorder;
+		}
+
+		//stop the recorder and remove it from the known recorder list
+		recorder.stop();
+		recorder.removeMotionRecorderListener(this.listener_pipe);
 	}
 
 	/**
@@ -183,7 +365,7 @@ public class Gui {
 	 */
 	private void configureGUI(Shell shell) {
 		//set the titel
-		shell.setText("Multimedia Systems 2012 Luleå - Lab 1");
+		shell.setText("Multimedia Systems 2012 Luleå - Lab 2 Server");
 
 		//configure layout and minimum size of the shell
 		shell.setMinimumSize(600, 400);
@@ -293,48 +475,11 @@ public class Gui {
 		//add action to the play button
 		button_play.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				//if the play button is clicked, the recorder should play the video from the webcam
-				Gui.this.playRecorder();
-				//set button enablements
-				button_play.setEnabled(false);
-				button_stop.setEnabled(true);
-				button_record.setEnabled(true);
-				
-				//set the playbutton background color
-				button_play.setBackground(Gui.this.display.getSystemColor(SWT.COLOR_GREEN));
-			}
-		});
-
-		// add the action to the stop button
-		button_stop.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent e) {
-				Gui.this.StopRecorder();
-				//set button enablements
-				button_play.setEnabled(true);
-				button_stop.setEnabled(false);
-				button_record.setEnabled(false);
-				button_record.setSelection(false);
-				
-				//set button colors
-				button_record.setBackground(Gui.this.display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
-				button_play.setBackground(Gui.this.display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
-			}
-		});
-
-		//add action to the record button
-		button_record.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent e) {
-				//check if it is recording, and if yes stop it. Otherwise start recording
-				boolean recording = Gui.this.recorder.isRecording();
-				if (recording) {
-					//recording --> stop it
-					Gui.this.stopRecording();
-					button_record.setBackground(Gui.this.display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
-				} else {
-					//not recording => recording
-					boolean succ = Gui.this.startRec();
+				//if the play button is clicked, the server should start listening
+				try {
+					boolean succ = Gui.this.startServer();
 					if (!succ) {
-						//not successfully started. Means no directory chosen.
+						//not successfully started. Means no directory for recording chosen.
 						//inform the user
 						MessageBox dlg = new MessageBox(Gui.this.display.getShells()[0], SWT.OK);
 						dlg.setMessage("No directory selected. Cannot record.");
@@ -345,8 +490,32 @@ public class Gui {
 						// then return
 						return;
 					}
-					button_record.setBackground(Gui.this.display.getSystemColor(SWT.COLOR_RED));
+				} catch (IOException e1) {
+					// error while starting listening
+					Gui.this.handleConnectionError(e1);
 				}
+			}
+		});
+
+		// add the action to the stop button
+		button_stop.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				Gui.this.stopServer();
+			}
+		});
+
+		//add action to the record button
+		button_record.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				//inform the user
+				MessageBox dlg = new MessageBox(Gui.this.display.getShells()[0], SWT.OK);
+				dlg.setMessage("No more implemented. Motion is started automatically...");
+				dlg.setText("Information");
+				dlg.open();
+				//and reset the selection on the button
+				button_record.setSelection(!button_record.getSelection());
+				// then return
+				return;
 			}
 		});
 		//add another empty layout at the right side so that the buttons are centered. It has to grab horizontal size
@@ -354,6 +523,27 @@ public class Gui {
 
 		// and finally add a new line with the preference buttons
 		addPreferenceButtons(comp);
+
+		//set the buttons
+		this.button_stop = button_stop;
+		this.button_play = button_play;
+		this.button_record = button_record;
+	}
+
+	private void handleConnectionError(final Exception e) {
+		// show message window and stop the server
+		Gui.this.display.asyncExec(new Runnable() {
+
+			@Override
+			public void run() {
+				MessageBox msgBox = new MessageBox(Gui.this.display.getShells()[0], SWT.OK|SWT.ERROR);
+				msgBox.setMessage("Error whith the tcp sockets:'" + e.getMessage()+ "'.");
+				msgBox.setText("Error");
+				msgBox.open();
+			}
+		});
+		//stop the server
+		Gui.this.stopServer();
 	}
 
 	/** Adds prefernce buttons to the given composite
@@ -367,13 +557,13 @@ public class Gui {
 		GridData data = new GridData(SWT.FILL, SWT.NONE, true, false);
 		data.horizontalSpan=3;
 		pref.setLayoutData(data);
-		
+
 		addHiddenField(pref);
-		
+
 		//create a sub Composit for this buttons
 		Composite middle = new Composite(pref, SWT.BORDER);
 		middle.setLayout(new GridLayout(3, false));
-		
+
 		//add a show fps button
 		final Button button_fps = new Button (middle, SWT.TOGGLE);
 		button_fps.setText ("showFPS");
@@ -596,21 +786,6 @@ public class Gui {
 		shell.setFullScreen(!isFullScreen);
 	}
 
-	/**
-	 * Sets the filename with the increased counter and send a start recording command the the connected recorder
-	 */
-	private boolean startRec() {
-		if (CapturingPath == null) {
-			boolean succ= setCapturingPath();
-			if (!succ) {
-				return false;
-			}
-		}
-		String fileName= CapturingPath+CapturingName+(this.recorderCounter++)+CapturingEnding;
-		this.recorder.startRec(fileName);
-		return true;
-	}
-
 	/** trys to get the capturing paths
 	 * 
 	 * @return if the setting of the capturing path was successfull
@@ -632,26 +807,108 @@ public class Gui {
 	}
 
 	/**
-	 * stops the recording on the connected recorder
-	 */
-	private void stopRecording() {
-		this.recorder.stopRec();
-		//TODO button_record.setText("Record");
-	}
-
-	/**
 	 * Start/restart the recorder. After that the webcame is played, but nothing recorded.
+	 * @throws IOException 
 	 */
 
-	private void playRecorder() {
-		this.recorder.play();
+	private boolean startServer() throws IOException {
+
+		if (CapturingPath == null) {
+			boolean succ= this.setCapturingPath();
+			if (!succ) {
+				return false;
+			}
+		}
+
+		final ConnectionManager manager = new ConnectionManager(Gui.SERVER_PORT);
+		manager.addConnectionListener(this.listener_connectionManager);
+		new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				try {
+					manager.start();
+				} catch (IOException e) {
+					Gui.this.handleConnectionError(e);
+				}
+			}
+		}).start();
+
+		Gui.this.display.asyncExec(new Runnable() {
+
+			@Override
+			public void run() {
+				Gui.this.setButtonsStarted();
+			}
+		});
+		this.currentConnectionManager = manager;
+		return true;
+	}
+
+	private void setButtonsStarted() {
+		//set button enablements
+		button_play.setEnabled(false);
+		button_stop.setEnabled(true);
+		button_record.setEnabled(true);
+
+		//set the playbutton background color
+		button_play.setBackground(Gui.this.display.getSystemColor(SWT.COLOR_GREEN));
 	}
 
 	/**
-	 * stops the recorder (means also, that the recording is stopped)
+	 * stops the server. This will stop the connectionManager and every running pipe. It will also disconnect the video component from the current displaying pipe.
 	 */
-	private void StopRecorder() {
-		this.recorder.stop();
+	private void stopServer() {
+
+		//disconnect the video window from its current pipeline
+		if (this.current_recorder != null) {
+			this.current_recorder.setPlayer(this.vid, false);
+		}
+		// stop the connection manager 
+		if (this.currentConnectionManager != null) {
+			try {
+				this.currentConnectionManager.stop();
+				this.currentConnectionManager = null;
+			} catch (IOException e) {
+				// error while stopping the connection manager
+				Gui.this.handleConnectionError(e);
+				Gui.this.setButtonsStarted();
+			}
+		}
+
+		//stop all pipelines
+		for (MotionRecorder rec:this.pipeList) {
+			rec.stop();
+			rec.removeMotionRecorderListener(this.listener_pipe);
+		}
+		// and empty the pipelist
+		this.pipeList.clear();
+
+		//set the button enablement
+		this.setButtonsStopped();
+
+	}
+
+	private void setButtonsStopped() {
+		//set button enablements
+		if (!this.button_play.isDisposed()) {
+			this.button_play.setEnabled(true);
+			//set button color back
+			this.button_play.setBackground(Gui.this.display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
+		}
+
+		if (!this.button_stop.isDisposed()) {
+
+			this.button_stop.setEnabled(false);
+		}
+
+		if (!this.button_record.isDisposed()) {
+			this.button_record.setEnabled(false);
+			this.button_record.setSelection(false);
+
+			//set button color back
+			this.button_record.setBackground(Gui.this.display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
+		}
 
 	}
 
@@ -673,7 +930,7 @@ public class Gui {
 		}
 
 		//diposed command received: Stop the recorder, free the background image and close the display
-		this.StopRecorder();
+		this.stopServer();
 		if (bgImmage != null) {
 			bgImmage.dispose();
 		}
@@ -704,27 +961,4 @@ public class Gui {
 		this.vid.showFPS(useFPS);
 	}
 
-	/**
-	 * 
-	 * @return the VideoComponent that has to be connected with a playback device.
-	 */
-	public VideoComponent getVideoComponent() {
-		return this.vid;
-	}
-
-	/** Sets the recorder that this GUI will control.
-	 * Has to be set before running the gui with {@link #run()}
-	 * 
-	 * @param rec the recorder, that should be controlled.
-	 * 
-	 * @throws IllegalArgumentException if the given recorder is null
-	 */
-	public void setRecorder(Recorder rec) {
-		//check if the given recorder is null and set it if not. Otherwise throw a exception
-		if (rec != null) {
-			this.recorder=rec;
-		} else {
-			throw new IllegalArgumentException("Recorder cannot be null");
-		}
-	}
 }
