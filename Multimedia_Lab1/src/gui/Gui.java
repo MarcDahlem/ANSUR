@@ -64,7 +64,7 @@ public class Gui {
 	private int menu_off_time = 3000; // time until the menu in fullscreen mode turns off in ms
 
 	private Display display; //display of the gui
-	private volatile VideoComponent vid; //the videocomponent, that has to be shiftet around when changing to fullscreen or changing menu on/off
+	private volatile VideoComponent vid; //the videocomponent, that has to be shifted around when changing to fullscreen or changing menu on/off
 	private MotionRecorder current_recorder;  //the gstreamer recorder, that is to be controlled with this gui
 
 	private KeyListener listener_keypress; //listener that is used to connect keypresses to actions 
@@ -218,22 +218,34 @@ public class Gui {
 					});
 					break;
 				case MOTION_START:
-					//switch video sink to the latest motion detection stream
-					if (source != Gui.this.current_recorder) {
-						if (Gui.this.current_recorder != null) {
-							Gui.this.current_recorder.setPlayer(Gui.this.vid, false);
+					Gui.this.display.asyncExec(new Runnable() {
+						
+						@Override
+						public void run() {
+							//switch video sink to the latest motion detection stream
+							if (source != Gui.this.current_recorder) {
+								if (Gui.this.current_recorder != null) {
+									Gui.this.current_recorder.setPlayer(Gui.this.vid, false);
+								}
+								//set the new video sink
+								Gui.this.current_recorder = source;
+								source.setPlayer(Gui.this.vid, true);
+							}
+							// update the overlay
+							Gui.this.vid.setOverlay("Motion recording started to file '" + message + "'.");
 						}
-						//set the new video sink
-						Gui.this.current_recorder = source;
-						source.setPlayer(Gui.this.vid, true);
-					}
-					// update the overlay
-					Gui.this.vid.setOverlay("Motion recording started to file '" + message + "'.");
+					});
 					break;
 				case MOTION_END:
 					//TODO filename in list for check on download if it is still recording.
-					// update the overlay
-					Gui.this.vid.setOverlay("Motion recording stopped.");
+					Gui.this.display.asyncExec(new Runnable() {
+						
+						@Override
+						public void run() {
+							// update the overlay
+							Gui.this.vid.setOverlay("Motion recording stopped.");
+						}
+					});
 					break;
 				default:
 					Gui.this.display.asyncExec(new Runnable() {

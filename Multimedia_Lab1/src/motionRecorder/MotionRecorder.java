@@ -300,6 +300,7 @@ public class MotionRecorder {
 					System.out.println("Motion end detected on port " + MotionRecorder.this.port);
 					MotionRecorder.this.stopRec(false);
 					MotionRecorderEvent event = new MotionRecorderEvent(MotionRecorder.this, motionDetection, MotionRecorderEventType.MOTION_END, this.currentFileName);
+					MotionRecorder.this.notifyPipelineEvent(event);
 				}
 				motionStart = !motionStart;
 			}
