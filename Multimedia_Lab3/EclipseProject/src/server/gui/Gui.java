@@ -463,12 +463,12 @@ public class Gui {
 		button_play.setText ("Play");
 
 		//add a record button
-		final Button button_record = new Button (middle, SWT.TOGGLE);
-		button_record.setText ("Record");
+		final Button button_clients = new Button (middle, SWT.PUSH);
+		button_clients.setText ("ConnectedClients");
 
 		//disable stop and record at the beginning
 		button_stop.setEnabled(false);
-		button_record.setEnabled(false);
+		button_clients.setEnabled(false);
 
 		//add the actions for the buttons
 
@@ -486,7 +486,7 @@ public class Gui {
 						dlg.setText("Information");
 						dlg.open();
 						//and reset the selection on the button
-						button_record.setSelection(!button_record.getSelection());
+						button_clients.setSelection(!button_clients.getSelection());
 						// then return
 						return;
 					}
@@ -504,16 +504,14 @@ public class Gui {
 			}
 		});
 
-		//add action to the record button
-		button_record.addSelectionListener(new SelectionAdapter() {
+		//add action to the show connected client button
+		button_clients.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				//inform the user
-				MessageBox dlg = new MessageBox(Gui.this.display.getShells()[0], SWT.OK);
-				dlg.setMessage("No more implemented. Motion is started automatically...");
-				dlg.setText("Information");
-				dlg.open();
+				Dialog_connectedClients connectedClientsDialog = new Dialog_connectedClients(Gui.this.display.getShells()[0], Gui.this.pipeList);
+				connectedClientsDialog.open();
 				//and reset the selection on the button
-				button_record.setSelection(!button_record.getSelection());
+				button_clients.setSelection(!button_clients.getSelection());
 				// then return
 				return;
 			}
@@ -527,7 +525,7 @@ public class Gui {
 		//set the buttons
 		this.button_stop = button_stop;
 		this.button_play = button_play;
-		this.button_record = button_record;
+		this.button_record = button_clients;
 	}
 
 	private void handleConnectionError(final Exception e) {
