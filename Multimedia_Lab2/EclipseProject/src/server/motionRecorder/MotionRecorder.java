@@ -269,7 +269,7 @@ public class MotionRecorder {
 			@Override
 			public void padAdded(Element element, Pad pad) {
 				Element.linkMany(element, dec);
-				pipe.debugToDotFile(Pipeline.DEBUG_GRAPH_SHOW_NON_DEFAULT_PARAMS, "server_running_playback on port " + MotionRecorder.this.port);
+				pipe.debugToDotFile(Pipeline.DEBUG_GRAPH_SHOW_NON_DEFAULT_PARAMS, "server_running_playback_on_port_" + MotionRecorder.this.port);
 			}
 		});
 
@@ -363,6 +363,7 @@ public class MotionRecorder {
 			//create recorder bin to set the new filename
 			Bin newRecordBin = this.createRealRecordBin(fileName);
 			changeRecordBin(newRecordBin, false);
+			newRecordBin.debugToDotFile(Pipeline.DEBUG_GRAPH_SHOW_NON_DEFAULT_PARAMS, "server_running_recordbin_on_port_" + MotionRecorder.this.port);
 		}
 
 	}
@@ -434,7 +435,6 @@ public class MotionRecorder {
 			//change the isRecording status
 			MotionRecorder.this.isRecording=!MotionRecorder.this.isRecording;
 			pad.removeEventProbe(probe);
-			this.pipe.debugToDotFile(Pipeline.DEBUG_GRAPH_SHOW_NON_DEFAULT_PARAMS, "server_isrecording_"+this.isRecording+"_port_" + this.port);
 			if (stopPipe) {
 				this.pipe.stop();
 			}

@@ -1,0 +1,287 @@
+digraph pipeline {
+  rankdir=LR;
+  fontname="sans";
+  fontsize="10";
+  labelloc=t;
+  nodesep=.1;
+  ranksep=.2;
+  label="<GstPipeline>\nWebcam Recorder/Player on Servers port 5001";
+  node [style=filled, shape=box, fontsize="9", fontname="sans", margin="0.0,0.0"];
+  edge [labelfontsize="6", fontsize="9", fontname="monospace"];
+
+  subgraph cluster_Recorder_subpipe_on_port_5001_0x7f67b0696cf0 {
+    fontname="Bitstream Vera Sans";
+    fontsize="8";
+    style=filled;
+    color=black;
+
+    label="GstBin\nRecorder subpipe on port 5001";
+    _proxypad5_0x7f67b066ed60 [color=black, fillcolor="#ddddff", label="proxypad5", height="0.2", style="filled,solid"];
+  Recorder_subpipe_on_port_5001_0x7f67b0696cf0_sink_0x7f67b066ddf0 -> _proxypad5_0x7f67b066ed60 [style=dashed, minlen=0]
+    Recorder_subpipe_on_port_5001_0x7f67b0696cf0_sink_0x7f67b066ddf0 [color=black, fillcolor="#ddddff", label="sink", height="0.2", style="filled,solid"];
+    fillcolor="#ffffff";
+    subgraph cluster_File_Sink_on_port_5001_0x7f673cb44370 {
+      fontname="Bitstream Vera Sans";
+      fontsize="8";
+      style=filled;
+      color=black;
+
+      label="GstFileSink\nFile Sink on port 5001\nsync=FALSE\nlocation=\"/home/marc/Arbeitsfl\\303\\244che/Motion_on_port_5001_2012_12_11_00_13_02_797.ogg\"";
+      File_Sink_on_port_5001_0x7f673cb44370_sink_0x7f673cad0540 [color=black, fillcolor="#aaaaff", label="sink", height="0.2", style="filled,solid"];
+      fillcolor="#aaaaff";
+    }
+
+    subgraph cluster_ogg_muxer_on_server_on_port_5001_0x7f6744003540 {
+      fontname="Bitstream Vera Sans";
+      fontsize="8";
+      style=filled;
+      color=black;
+
+      label="GstOggMux\nogg muxer on server on port 5001";
+      ogg_muxer_on_server_on_port_5001_0x7f6744003540_sink_1160701413_0x7f673cad06c0 [color=black, fillcolor="#aaaaff", label="sink_1160701413", height="0.2", style="filled,dashed"];
+      ogg_muxer_on_server_on_port_5001_0x7f6744003540_src_0x7f673cad03c0 [color=black, fillcolor="#ffaaaa", label="src", height="0.2", style="filled,solid"];
+      fillcolor="#aaffaa";
+    }
+
+    ogg_muxer_on_server_on_port_5001_0x7f6744003540_src_0x7f673cad03c0 -> File_Sink_on_port_5001_0x7f673cb44370_sink_0x7f673cad0540
+    subgraph cluster_Theora_encoder_on_server_on_port_5001_0x7f673cacd800 {
+      fontname="Bitstream Vera Sans";
+      fontsize="8";
+      style=filled;
+      color=black;
+
+      label="GstTheoraEnc\nTheora encoder on server on port 5001";
+      Theora_encoder_on_server_on_port_5001_0x7f673cacd800_sink_0x7f673cad00c0 [color=black, fillcolor="#aaaaff", label="sink", height="0.2", style="filled,solid"];
+      Theora_encoder_on_server_on_port_5001_0x7f673cacd800_src_0x7f673cad0240 [color=black, fillcolor="#ffaaaa", label="src", height="0.2", style="filled,solid"];
+      fillcolor="#aaffaa";
+    }
+
+    Theora_encoder_on_server_on_port_5001_0x7f673cacd800_src_0x7f673cad0240 -> ogg_muxer_on_server_on_port_5001_0x7f6744003540_sink_1160701413_0x7f673cad06c0
+    subgraph cluster_ffmpeg_color_space_server_recordbin_on_port_5001_0x7f67b065dc10 {
+      fontname="Bitstream Vera Sans";
+      fontsize="8";
+      style=filled;
+      color=black;
+
+      label="GstFFMpegCsp\nffmpeg color space server recordbin on port 5001\nqos=TRUE";
+      ffmpeg_color_space_server_recordbin_on_port_5001_0x7f67b065dc10_sink_0x7f672c03ac00 [color=black, fillcolor="#aaaaff", label="sink", height="0.2", style="filled,solid"];
+      ffmpeg_color_space_server_recordbin_on_port_5001_0x7f67b065dc10_src_0x7f672c03ad80 [color=black, fillcolor="#ffaaaa", label="src", height="0.2", style="filled,solid"];
+      fillcolor="#aaffaa";
+    }
+
+    ffmpeg_color_space_server_recordbin_on_port_5001_0x7f67b065dc10_src_0x7f672c03ad80 -> Theora_encoder_on_server_on_port_5001_0x7f673cacd800_sink_0x7f673cad00c0
+    _proxypad5_0x7f67b066ed60 -> ffmpeg_color_space_server_recordbin_on_port_5001_0x7f67b065dc10_sink_0x7f672c03ac00
+  }
+
+  subgraph cluster_firstpart_0x7f67b0696730 {
+    fontname="Bitstream Vera Sans";
+    fontsize="8";
+    style=filled;
+    color=black;
+
+    label="GstBin\nfirstpart";
+    _proxypad4_0x7f67b066ebc0 [color=black, fillcolor="#ffdddd", label="proxypad4", height="0.2", style="filled,solid"];
+  _proxypad4_0x7f67b066ebc0 -> firstpart_0x7f67b0696730_src_0x7f67b066dc40 [style=dashed, minlen=0]
+    firstpart_0x7f67b0696730_src_0x7f67b066dc40 [color=black, fillcolor="#ffdddd", label="src", height="0.2", style="filled,solid"];
+    fillcolor="#ffffff";
+    subgraph cluster_playback_pipe_on_port_5001_0x7f67b0696b80 {
+      fontname="Bitstream Vera Sans";
+      fontsize="8";
+      style=filled;
+      color=black;
+
+      label="GstBin\nplayback pipe on port 5001";
+      _proxypad3_0x7f67b066ea20 [color=black, fillcolor="#ddddff", label="proxypad3", height="0.2", style="filled,solid"];
+    playback_pipe_on_port_5001_0x7f67b0696b80_sink_0x7f67b066da90 -> _proxypad3_0x7f67b066ea20 [style=dashed, minlen=0]
+      playback_pipe_on_port_5001_0x7f67b0696b80_sink_0x7f67b066da90 [color=black, fillcolor="#ddddff", label="sink", height="0.2", style="filled,solid"];
+      fillcolor="#ffffff";
+      subgraph cluster_SWTVideo_on_port_5001_0x7f67b06155c0 {
+        fontname="Bitstream Vera Sans";
+        fontsize="8";
+        style=filled;
+        color=black;
+
+        label="GstBin\nSWTVideo on port 5001";
+        _proxypad0_0x7f67b066e060 [color=black, fillcolor="#ddddff", label="proxypad0", height="0.2", style="filled,solid"];
+      SWTVideo_on_port_5001_0x7f67b06155c0_sink_0x7f67b066d070 -> _proxypad0_0x7f67b066e060 [style=dashed, minlen=0]
+        SWTVideo_on_port_5001_0x7f67b06155c0_sink_0x7f67b066d070 [color=black, fillcolor="#ddddff", label="sink", height="0.2", style="filled,solid"];
+        fillcolor="#ffffff";
+        subgraph cluster_GstVideoComponent_0x7f67b0646250 {
+          fontname="Bitstream Vera Sans";
+          fontsize="8";
+          style=filled;
+          color=black;
+
+          label="GstFakeSink\nGstVideoComponent\npreroll-queue-len=1\nlast-buffer=???\nsignal-handoffs=TRUE\nlast-message=\"chain   ******* (GstVideoComponent:sink) (1228800 bytes, timestamp: 0:00:08.766666666, duration: 0:00:00.033333334, offset: -1, offset_end: -1, flags: 0 ) 0x7f67b088d4a0\"";
+          GstVideoComponent_0x7f67b0646250_sink_0x7f67b0647060 [color=black, fillcolor="#aaaaff", label="sink", height="0.2", style="filled,solid"];
+          fillcolor="#aaaaff";
+        }
+
+        subgraph cluster_ColorFilter_0x7f67b065e080 {
+          fontname="Bitstream Vera Sans";
+          fontsize="8";
+          style=filled;
+          color=black;
+
+          label="GstCapsFilter\nColorFilter\ncaps=video/x-raw-rgb, bpp=(int)32, depth=(int)24, endianness=(int)4321, red_mask=(int)65280, green_mask=(int)16711680, blue_mask=(int)-16777216";
+          ColorFilter_0x7f67b065e080_sink_0x7f67b06474e0 [color=black, fillcolor="#aaaaff", label="sink", height="0.2", style="filled,solid"];
+          ColorFilter_0x7f67b065e080_src_0x7f67b0647660 [color=black, fillcolor="#ffaaaa", label="src", height="0.2", style="filled,solid"];
+          fillcolor="#aaffaa";
+        }
+
+        ColorFilter_0x7f67b065e080_src_0x7f67b0647660 -> GstVideoComponent_0x7f67b0646250_sink_0x7f67b0647060
+        subgraph cluster_ColorConverter_0x7f67b065c010 {
+          fontname="Bitstream Vera Sans";
+          fontsize="8";
+          style=filled;
+          color=black;
+
+          label="GstFFMpegCsp\nColorConverter\nqos=TRUE";
+          ColorConverter_0x7f67b065c010_sink_0x7f67b06471e0 [color=black, fillcolor="#aaaaff", label="sink", height="0.2", style="filled,solid"];
+          ColorConverter_0x7f67b065c010_src_0x7f67b0647360 [color=black, fillcolor="#ffaaaa", label="src", height="0.2", style="filled,solid"];
+          fillcolor="#aaffaa";
+        }
+
+        ColorConverter_0x7f67b065c010_src_0x7f67b0647360 -> ColorFilter_0x7f67b065e080_sink_0x7f67b06474e0
+        _proxypad0_0x7f67b066e060 -> ColorConverter_0x7f67b065c010_sink_0x7f67b06471e0
+      }
+
+      subgraph cluster_playback_queue_on_port_5001_0x7f672c038290 {
+        fontname="Bitstream Vera Sans";
+        fontsize="8";
+        style=filled;
+        color=black;
+
+        label="GstQueue\nplayback queue on port 5001\nleaky=((GstQueueLeaky) Leaky on upstream (new buffers))";
+        playback_queue_on_port_5001_0x7f672c038290_sink_0x7f672c03a480 [color=black, fillcolor="#aaaaff", label="sink", height="0.2", style="filled,solid"];
+        playback_queue_on_port_5001_0x7f672c038290_src_0x7f672c03a600 [color=black, fillcolor="#ffaaaa", label="src", height="0.2", style="filled,solid"];
+        fillcolor="#aaffaa";
+      }
+
+      playback_queue_on_port_5001_0x7f672c038290_src_0x7f672c03a600 -> SWTVideo_on_port_5001_0x7f67b06155c0_sink_0x7f67b066d070
+      _proxypad3_0x7f67b066ea20 -> playback_queue_on_port_5001_0x7f672c038290_sink_0x7f672c03a480
+    }
+
+    subgraph cluster_Switcher_for_recording_on_port_5001_0x7f67b07e7670 {
+      fontname="Bitstream Vera Sans";
+      fontsize="8";
+      style=filled;
+      color=black;
+
+      label="GstValve\nSwitcher for recording on port 5001";
+      Switcher_for_recording_on_port_5001_0x7f67b07e7670_sink_0x7f672c020c80 [color=black, fillcolor="#aaaaff", label="sink", height="0.2", style="filled,solid"];
+      Switcher_for_recording_on_port_5001_0x7f67b07e7670_src_0x7f672c020b00 [color=black, fillcolor="#ffaaaa", label="src", height="0.2", style="filled,solid"];
+      fillcolor="#aaffaa";
+    }
+
+    Switcher_for_recording_on_port_5001_0x7f67b07e7670_src_0x7f672c020b00 -> _proxypad4_0x7f67b066ebc0
+    subgraph cluster_recording_queue_on_port_5001_0x7f672c038000 {
+      fontname="Bitstream Vera Sans";
+      fontsize="8";
+      style=filled;
+      color=black;
+
+      label="GstQueue\nrecording queue on port 5001";
+      recording_queue_on_port_5001_0x7f672c038000_sink_0x7f672c020e00 [color=black, fillcolor="#aaaaff", label="sink", height="0.2", style="filled,solid"];
+      recording_queue_on_port_5001_0x7f672c038000_src_0x7f672c03a000 [color=black, fillcolor="#ffaaaa", label="src", height="0.2", style="filled,solid"];
+      fillcolor="#aaffaa";
+    }
+
+    recording_queue_on_port_5001_0x7f672c038000_src_0x7f672c03a000 -> Switcher_for_recording_on_port_5001_0x7f67b07e7670_sink_0x7f672c020c80
+    subgraph cluster_Tee_split_buffer_on_port_5001_0x7f67b036b9b0 {
+      fontname="Bitstream Vera Sans";
+      fontsize="8";
+      style=filled;
+      color=black;
+
+      label="GstTee\nTee split buffer on port 5001\nnum-src-pads=2";
+      Tee_split_buffer_on_port_5001_0x7f67b036b9b0_sink_0x7f672c020980 [color=black, fillcolor="#aaaaff", label="sink", height="0.2", style="filled,solid"];
+      Tee_split_buffer_on_port_5001_0x7f67b036b9b0_src1_0x7f672c03a900 [color=black, fillcolor="#ffaaaa", label="src1", height="0.2", style="filled,dashed"];
+      Tee_split_buffer_on_port_5001_0x7f67b036b9b0_src0_0x7f672c03a780 [color=black, fillcolor="#ffaaaa", label="src0", height="0.2", style="filled,dashed"];
+      fillcolor="#aaffaa";
+    }
+
+    Tee_split_buffer_on_port_5001_0x7f67b036b9b0_src1_0x7f672c03a900 -> playback_pipe_on_port_5001_0x7f67b0696b80_sink_0x7f67b066da90
+    Tee_split_buffer_on_port_5001_0x7f67b036b9b0_src0_0x7f672c03a780 -> recording_queue_on_port_5001_0x7f672c038000_sink_0x7f672c020e00
+    subgraph cluster_source_0x7f67b06968a0 {
+      fontname="Bitstream Vera Sans";
+      fontsize="8";
+      style=filled;
+      color=black;
+
+      label="GstBin\nsource";
+      _proxypad1_0x7f67b066e6e0 [color=black, fillcolor="#ffdddd", label="proxypad1", height="0.2", style="filled,solid"];
+    _proxypad1_0x7f67b066e6e0 -> source_0x7f67b06968a0_src_0x7f67b066d730 [style=dashed, minlen=0]
+      source_0x7f67b06968a0_src_0x7f67b066d730 [color=black, fillcolor="#ffdddd", label="src", height="0.2", style="filled,solid"];
+      fillcolor="#ffffff";
+      subgraph cluster_motion_detection_on_port_5001_0x7f672c0300a0 {
+        fontname="Bitstream Vera Sans";
+        fontsize="8";
+        style=filled;
+        color=black;
+
+        label="GstMotionDetector\nmotion detection on port 5001\nmotion-detected=TRUE\ndraw-motion=TRUE\nnum-blobs=6";
+        motion_detection_on_port_5001_0x7f672c0300a0_sink_0x7f672c020380 [color=black, fillcolor="#aaaaff", label="sink", height="0.2", style="filled,solid"];
+        motion_detection_on_port_5001_0x7f672c0300a0_src_0x7f672c020500 [color=black, fillcolor="#ffaaaa", label="src", height="0.2", style="filled,solid"];
+        fillcolor="#aaffaa";
+      }
+
+      motion_detection_on_port_5001_0x7f672c0300a0_src_0x7f672c020500 -> _proxypad1_0x7f67b066e6e0
+      subgraph cluster_ffmpegcolorspace_for_the_motion_detection_on_port_5001_0x7f67b065ce10 {
+        fontname="Bitstream Vera Sans";
+        fontsize="8";
+        style=filled;
+        color=black;
+
+        label="GstFFMpegCsp\nffmpegcolorspace for the motion detection on port 5001\nqos=TRUE";
+        ffmpegcolorspace_for_the_motion_detection_on_port_5001_0x7f67b065ce10_sink_0x7f672c020680 [color=black, fillcolor="#aaaaff", label="sink", height="0.2", style="filled,solid"];
+        ffmpegcolorspace_for_the_motion_detection_on_port_5001_0x7f67b065ce10_src_0x7f672c020800 [color=black, fillcolor="#ffaaaa", label="src", height="0.2", style="filled,solid"];
+        fillcolor="#aaffaa";
+      }
+
+      ffmpegcolorspace_for_the_motion_detection_on_port_5001_0x7f67b065ce10_src_0x7f672c020800 -> motion_detection_on_port_5001_0x7f672c0300a0_sink_0x7f672c020380
+      subgraph cluster_Theora_decoder_on_port_5001_0x7f672c02e020 {
+        fontname="Bitstream Vera Sans";
+        fontsize="8";
+        style=filled;
+        color=black;
+
+        label="GstTheoraDec\nTheora decoder on port 5001";
+        Theora_decoder_on_port_5001_0x7f672c02e020_sink_0x7f672c020080 [color=black, fillcolor="#aaaaff", label="sink", height="0.2", style="filled,solid"];
+        Theora_decoder_on_port_5001_0x7f672c02e020_src_0x7f672c020200 [color=black, fillcolor="#ffaaaa", label="src", height="0.2", style="filled,solid"];
+        fillcolor="#aaffaa";
+      }
+
+      Theora_decoder_on_port_5001_0x7f672c02e020_src_0x7f672c020200 -> ffmpegcolorspace_for_the_motion_detection_on_port_5001_0x7f67b065ce10_sink_0x7f672c020680
+      subgraph cluster_Ogg_demuxer_on_port_5001_0x7f67b0b5a940 {
+        fontname="Bitstream Vera Sans";
+        fontsize="8";
+        style=filled;
+        color=black;
+
+        label="GstOggDemux\nOgg demuxer on port 5001";
+        Ogg_demuxer_on_port_5001_0x7f67b0b5a940_sink_0x7f67b0647de0 [color=black, fillcolor="#aaaaff", label="sink", height="0.2", style="filled,solid"];
+        Ogg_demuxer_on_port_5001_0x7f67b0b5a940_serial_12c2b080_0x7f673c007050 [color=black, fillcolor="#ffaaaa", label="serial_12c2b080", height="0.2", style="filled,solid"];
+        fillcolor="#aaffaa";
+      }
+
+      Ogg_demuxer_on_port_5001_0x7f67b0b5a940_serial_12c2b080_0x7f673c007050 -> Theora_decoder_on_port_5001_0x7f672c02e020_sink_0x7f672c020080
+      subgraph cluster_tcpserversrc_on_port_5001_0x7f67b01acd00 {
+        fontname="Bitstream Vera Sans";
+        fontsize="8";
+        style=filled;
+        color=black;
+
+        label="GstTCPServerSrc\ntcpserversrc on port 5001\nhost=\"0.0.0.0\"\nport=5001";
+        tcpserversrc_on_port_5001_0x7f67b01acd00_src_0x7f67b0647c60 [color=black, fillcolor="#ffaaaa", label="src", height="0.2", style="filled,solid"];
+        fillcolor="#ffaaaa";
+      }
+
+      tcpserversrc_on_port_5001_0x7f67b01acd00_src_0x7f67b0647c60 -> Ogg_demuxer_on_port_5001_0x7f67b0b5a940_sink_0x7f67b0647de0
+    }
+
+    source_0x7f67b06968a0_src_0x7f67b066d730 -> Tee_split_buffer_on_port_5001_0x7f67b036b9b0_sink_0x7f672c020980
+  }
+
+  firstpart_0x7f67b0696730_src_0x7f67b066dc40 -> Recorder_subpipe_on_port_5001_0x7f67b0696cf0_sink_0x7f67b066ddf0
+}

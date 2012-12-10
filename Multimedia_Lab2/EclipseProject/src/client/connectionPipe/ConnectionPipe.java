@@ -116,6 +116,7 @@ public class ConnectionPipe {
 
 		//run the pipe
 		this.pipe.play();
+		pipe.debugToDotFile(Pipeline.DEBUG_GRAPH_SHOW_NON_DEFAULT_PARAMS, "client_running_playback_on_port_" + this.port);
 	}
 
 	private void addBusMessageListeners(Pipeline pipe) {
