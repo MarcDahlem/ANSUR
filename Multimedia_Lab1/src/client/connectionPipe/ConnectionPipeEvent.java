@@ -1,4 +1,4 @@
-package connectionPipe;
+package client.connectionPipe;
 
 import java.util.EventObject;
 

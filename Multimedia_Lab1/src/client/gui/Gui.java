@@ -10,7 +10,7 @@
  * 		 It is shown menu_off_time ms (default 3000) after movement of the curser stopped. Then it will switch back to MODE2. 
  */
 
-package gui;
+package client.gui;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
@@ -33,11 +33,12 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.gstreamer.GstObject;
 
-import connectionPipe.ConnectionPipe;
-import connectionPipe.ConnectionPipeEvent;
-import connectionPipe.ConnectionPipeEventType;
-import connectionPipe.ConnectionPipeListener;
-import data.RecorderHost;
+import client.connectionPipe.ConnectionPipe;
+import client.connectionPipe.ConnectionPipeEvent;
+import client.connectionPipe.ConnectionPipeEventType;
+import client.connectionPipe.ConnectionPipeListener;
+import client.data.RecorderHost;
+
 
 
 public class Gui {

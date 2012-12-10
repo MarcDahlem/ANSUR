@@ -1,7 +1,7 @@
 /**
  * 
  */
-package connectionPipe;
+package client.connectionPipe;
 
 import javax.swing.event.EventListenerList;
 

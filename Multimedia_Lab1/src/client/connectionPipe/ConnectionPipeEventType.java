@@ -1,4 +1,4 @@
-package connectionPipe;
+package client.connectionPipe;
 
 public enum ConnectionPipeEventType {
 	GST_ERROR,

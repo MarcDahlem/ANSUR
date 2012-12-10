@@ -1,4 +1,4 @@
-package gui;
+package client.gui;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -14,7 +14,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
-import data.RecorderHost;
+import client.data.RecorderHost;
+
 
 class ClientSettingsDialog {
 	private Shell shell;
