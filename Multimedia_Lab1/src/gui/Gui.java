@@ -12,7 +12,12 @@
 
 package gui;
 
+import java.io.IOException;
+
 import motionRecorder.MotionRecorder;
+import motionRecorder.MotionRecorderEvent;
+import motionRecorder.MotionRecorderEventType;
+import motionRecorder.MotionRecorderListener;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
@@ -42,9 +47,10 @@ import org.eclipse.swt.widgets.Shell;
 import org.gstreamer.GstObject;
 import org.gstreamer.swt.VideoComponent;
 
-import motionRecorder.MotionRecorderEvent;
-import motionRecorder.MotionRecorderEventType;
-import motionRecorder.MotionRecorderListener;
+import connectionManager.ConnectionEvent;
+import connectionManager.ConnectionEventType;
+import connectionManager.ConnectionListener;
+import connectionManager.ConnectionManager;
 
 
 public class Gui {
@@ -61,7 +67,7 @@ public class Gui {
 
 	private Display display; //display of the gui
 	private VideoComponent vid; //the videocomponent, that has to be shiftet around when changing to fullscreen or changing menu on/off
-	private MotionRecorder recorder;  //the gstreamer recorder, that is to be controlled with this gui
+	private MotionRecorder current_recorder;  //the gstreamer recorder, that is to be controlled with this gui
 
 	private KeyListener listener_keypress; //listener that is used to connect keypresses to actions 
 	private Image bgImmage; //the current background image, computed on every rezise of the window
@@ -73,10 +79,12 @@ public class Gui {
 
 	private Composite menuBarDefaultComp;
 	private Composite menuBarFSComp;
-	private MotionRecorderListener pipeListener;
+	private MotionRecorderListener listener_pipe;
 	private Button button_stop;
 	private Button button_play;
 	private Button button_record;
+	private ConnectionListener listener_connectionManager;
+	private ConnectionManager currentConnectionManager;
 
 	/**
 	 * The constructur of the Gui initialises counters, listeners and the timer.
@@ -149,7 +157,7 @@ public class Gui {
 		};
 
 		//create a listener for the pipelines
-		this.pipeListener = new MotionRecorderListener() {
+		this.listener_pipe = new MotionRecorderListener() {
 
 			@Override
 			public void eventAppeared(MotionRecorderEvent event) {
@@ -223,7 +231,41 @@ public class Gui {
 				}
 			}
 		};
+		
+		this.listener_connectionManager = new ConnectionListener() {
+			
+			@Override
+			public void eventAppeared(ConnectionEvent event) {
+				final ConnectionEventType eventType = event.getEventType();
+				final int eventPort = event.getPort();
+				switch (eventType) {
+				case CLIENT_START:
+					MotionRecorder recorder = new MotionRecorder(eventPort);
+					recorder.addMotionRecorderListener(Gui.this.listener_pipe);
+					recorder.init();
+					//connect video if its the first stream
+					if (Gui.this.current_recorder == null) {
+						recorder.setPlayer(Gui.this.vid, true);
+						Gui.this.current_recorder = recorder;
+					}
+					recorder.run();
+					vid.setOverlay("Client connected on port " + eventPort);
+					vid.showOverlay(true);
+					break;
+					default:
+						Gui.this.display.asyncExec(new Runnable() {
 
+							@Override
+							public void run() {
+								MessageBox msgBox = new MessageBox(Gui.this.display.getShells()[0], SWT.OK| SWT.ICON_INFORMATION);
+								msgBox.setMessage("Unknown event appeared: '"+eventType.name() + "' on port " +eventPort);
+								msgBox.setText("Information");
+								msgBox.open();
+							}
+						});
+				}
+			}
+		};
 	}
 
 	/**
@@ -380,7 +422,12 @@ public class Gui {
 		button_play.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				//if the play button is clicked, the recorder should play the video from the webcam
-				Gui.this.playRecorder();
+				try {
+					Gui.this.playRecorder();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 			}
 		});
 
@@ -395,7 +442,7 @@ public class Gui {
 		button_record.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				//check if it is recording, and if yes stop it. Otherwise start recording
-				boolean recording = Gui.this.recorder.isRecording();
+				boolean recording = Gui.this.current_recorder.isRecording();
 				if (recording) {
 					//recording --> stop it
 					Gui.this.stopRecording();
@@ -682,7 +729,7 @@ public class Gui {
 			}
 		}
 		String fileName= CapturingPath+CapturingName+(this.recorderCounter++)+CapturingEnding;
-		this.recorder.startRec(fileName);
+		this.current_recorder.startRec(fileName);
 		return true;
 	}
 
@@ -710,22 +757,38 @@ public class Gui {
 	 * stops the recording on the connected recorder
 	 */
 	private void stopRecording() {
-		this.recorder.stopRec(false);
-		//TODO button_record.setText("Record");
+		this.current_recorder.stopRec(false);
 	}
 
 	/**
 	 * Start/restart the recorder. After that the webcame is played, but nothing recorded.
+	 * @throws IOException 
 	 */
 
-	private void playRecorder() {
-		this.setButtonsConnected();
-		MotionRecorder recorder = new MotionRecorder(5000);
-		recorder.addMotionRecorderListener(this.pipeListener);
-		recorder.init();
-		recorder.setPlayer(this.vid, true);
-		recorder.run();
-		this.recorder = recorder;
+	private void playRecorder() throws IOException {
+		final ConnectionManager manager = new ConnectionManager(5000);
+		manager.addConnectionListener(this.listener_connectionManager);
+		new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				try {
+					manager.start();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}).start();
+		
+		Gui.this.display.asyncExec(new Runnable() {
+			
+			@Override
+			public void run() {
+				Gui.this.setButtonsConnected();
+			}
+		});
+		this.currentConnectionManager = manager;
 	}
 
 	private void setButtonsConnected() {
@@ -743,11 +806,20 @@ public class Gui {
 	 */
 	private void StopRecorder() {
 		this.setButtonsDisconnected();
-		if (this.recorder != null) {
-			this.recorder.stop();
-			this.recorder.setPlayer(this.vid, false);
-			this.recorder.removeMotionRecorderListener(this.pipeListener);
-			this.recorder = null;
+		if (this.current_recorder != null) {
+			this.current_recorder.setPlayer(this.vid, false);
+			this.current_recorder.stop();
+			this.current_recorder.removeMotionRecorderListener(this.listener_pipe);
+			this.current_recorder = null;
+		}
+		if (this.currentConnectionManager != null) {
+			try {
+				this.currentConnectionManager.stop();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			this.currentConnectionManager = null;
 		}
 
 	}
