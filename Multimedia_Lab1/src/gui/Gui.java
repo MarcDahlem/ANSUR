@@ -165,7 +165,7 @@ public class Gui {
 						@Override
 						public void run() {
 							Gui.this.StopRecorder();
-							MessageBox msgBox = new MessageBox(Gui.this.display.getShells()[0], SWT.OK);
+							MessageBox msgBox = new MessageBox(Gui.this.display.getShells()[0], SWT.OK|SWT.ICON_WORKING);
 							msgBox.setMessage("EOS received from '" + gstSource.getName() + "'. Pipe stopped.");
 							msgBox.setText("Information");
 							msgBox.open();
@@ -190,7 +190,7 @@ public class Gui {
 
 						@Override
 						public void run() {
-							MessageBox msgBox = new MessageBox(Gui.this.display.getShells()[0], SWT.OK);
+							MessageBox msgBox = new MessageBox(Gui.this.display.getShells()[0], SWT.OK | SWT.ICON_INFORMATION);
 							msgBox.setMessage("Info from '" + gstSource.getName() + "': " + message);
 							msgBox.setText("Information");
 							msgBox.open();
@@ -202,7 +202,7 @@ public class Gui {
 
 						@Override
 						public void run() {
-							MessageBox msgBox = new MessageBox(Gui.this.display.getShells()[0], SWT.OK| SWT.ERROR);
+							MessageBox msgBox = new MessageBox(Gui.this.display.getShells()[0], SWT.OK| SWT.ICON_WARNING);
 							msgBox.setMessage("Warning from '" + gstSource.getName() + "': " + message+ "\n It CAN influence the work behavior and it could lead to problems during the execution...");
 							msgBox.setText("Warning");
 							msgBox.open();
@@ -214,7 +214,7 @@ public class Gui {
 
 						@Override
 						public void run() {
-							MessageBox msgBox = new MessageBox(Gui.this.display.getShells()[0], SWT.OK);
+							MessageBox msgBox = new MessageBox(Gui.this.display.getShells()[0], SWT.OK| SWT.ICON_INFORMATION);
 							msgBox.setMessage("Unknown event appeared: '"+eventType.name() + "' on '" + gstSource.getName() + "': " +message);
 							msgBox.setText("Information");
 							msgBox.open();
