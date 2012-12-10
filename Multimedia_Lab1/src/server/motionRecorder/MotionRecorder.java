@@ -111,7 +111,7 @@ public class MotionRecorder {
 		this.addBusListeners(pipe);
 
 		//create the source of the video for the recorder. To the webcame is a motiondetector connected, but not used at the moment
-		// requires a installed "motion" plugin in gstreamer
+		// requires a installed "motiondetector" plugin in gstreamer
 
 		Bin sourceBin = createSourceBin();
 		Element tee = ElementFactory.make("tee", "Tee split buffer on port " + this.port);
@@ -445,7 +445,7 @@ public class MotionRecorder {
 		}
 	}
 
-	public void setPlayer(VideoComponent vid, final boolean connect) {
+	public void setPlayer(VideoComponent vid, final boolean connect, boolean force) {
 		final Element vidSink = vid.getElement();
 		if (connect) {
 			vidSink.setName("SWTVideo on port " + this.port);
@@ -462,7 +462,7 @@ public class MotionRecorder {
 		Element first = elementsSorted.get(numElements-1);
 
 		//check if its playing. If not the elements can be changed without problems. And on the other hand does the blocking not return when no dataflow is handled.
-		if (!this.pipe.isPlaying()) {
+		if (!this.pipe.isPlaying() || force) {
 			// not running, means stopped or not started yet. Emulate EOS received
 			if (connect) {
 				this.handleEOSOnPlayBin(vidSink, last, secondLast, lastPad, null, new EOSEvent(), null);
@@ -513,7 +513,7 @@ public class MotionRecorder {
 			if (!connected) {
 				throw new IllegalStateException("can not link the new vidSink on port " + this.port);
 			}
-			newSink.play();
+			newSink.syncStateWithParent();
 			//remove the blocking status if something is blocked
 			if (blockedPad != null) {
 				//blocked => unblock

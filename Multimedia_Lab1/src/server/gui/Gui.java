@@ -226,11 +226,11 @@ public class Gui {
 							//switch video sink to the latest motion detection stream
 							if (source != Gui.this.current_recorder) {
 								if (Gui.this.current_recorder != null) {
-									Gui.this.current_recorder.setPlayer(Gui.this.vid, false);
+									Gui.this.current_recorder.setPlayer(Gui.this.vid, false, false);
 								}
 								//set the new video sink
 								Gui.this.current_recorder = source;
-								source.setPlayer(Gui.this.vid, true);
+								source.setPlayer(Gui.this.vid, true, false);
 							}
 							// update the overlay
 							Gui.this.vid.setOverlay("Motion recording started to file '" + message + "'.");
@@ -277,7 +277,7 @@ public class Gui {
 					recorder.init();
 					//connect video if its the first stream
 					if (Gui.this.current_recorder == null) {
-						recorder.setPlayer(Gui.this.vid, true);
+						recorder.setPlayer(Gui.this.vid, true, false);
 						Gui.this.current_recorder = recorder;
 					}
 					Gui.this.pipeList.add(recorder);
@@ -302,24 +302,24 @@ public class Gui {
 	}
 
 	private void stopRecorder(MotionRecorder recorder) {
-		//first delete the recorder from the known recorders
-		this.pipeList.remove(recorder);
-
-		//check if it is the current visible recorder and if, delete the video window out of it
-		if (recorder == this.current_recorder) {
-			this.current_recorder.setPlayer(this.vid, false);
-			// set the first stream if existent as new playback stream
-			MotionRecorder newDisplayingRecorder = null;
-			if(!this.pipeList.isEmpty()) {
-				newDisplayingRecorder = this.pipeList.get(0);
-				newDisplayingRecorder.setPlayer(this.vid, true);
-			}
-			this.current_recorder = newDisplayingRecorder;
-		}
 
 		//stop the recorder and remove it from the known recorder list
 		recorder.stop();
 		recorder.removeMotionRecorderListener(this.listener_pipe);
+		//delete the recorder from the known recorders
+		this.pipeList.remove(recorder);
+		
+		//check if it is the current visible recorder and if, delete the video window out of it
+		if (recorder == this.current_recorder) {
+			this.current_recorder.setPlayer(this.vid, false, true);
+			// set the first stream if existent as new playback stream
+			MotionRecorder newDisplayingRecorder = null;
+			if(!this.pipeList.isEmpty()) {
+				newDisplayingRecorder = this.pipeList.get(0);
+				newDisplayingRecorder.setPlayer(this.vid, true, false);
+			}
+			this.current_recorder = newDisplayingRecorder;
+		}
 	}
 
 	/**
@@ -862,7 +862,7 @@ public class Gui {
 
 		//disconnect the video window from its current pipeline
 		if (this.current_recorder != null) {
-			this.current_recorder.setPlayer(this.vid, false);
+			this.current_recorder.setPlayer(this.vid, false, false);
 		}
 		// stop the connection manager 
 		if (this.currentConnectionManager != null) {
