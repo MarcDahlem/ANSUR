@@ -12,6 +12,9 @@
 
 package gui;
 
+import java.io.IOException;
+import java.net.UnknownHostException;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -295,11 +298,20 @@ public class Gui {
 	private void connect() {
 		this.setButtonsConnected();
 		//in order to connect create a new pipe, initalize it and run it
-		ConnectionPipe pipe = new ConnectionPipe(this.host.getHostName(), this.host.getPort());
-		pipe.addConnectionPipeListener(this.pipeListener);
-		pipe.init();
-		pipe.run();
-		this.currentPipe = pipe;
+		ConnectionPipe pipe;
+		try {
+			pipe = new ConnectionPipe(this.host.getHostName(), this.host.getRemotePipelinePort());
+			pipe.addConnectionPipeListener(this.pipeListener);
+			pipe.init();
+			pipe.run();
+			this.currentPipe = pipe;
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	private void setButtonsDisconnected() {

@@ -1,5 +1,13 @@
 package data;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.util.Scanner;
+
 public class RecorderHost {
 	private int port;
 	private String hostName;
@@ -15,5 +23,21 @@ public class RecorderHost {
 	
 	public String getHostName(){
 		return this.hostName;
+	}
+	
+	public int getRemotePipelinePort() throws UnknownHostException, IOException {
+		//TODO
+		Socket socket = new Socket(this.getHostName(), this.getPort());
+		InputStream in = socket.getInputStream();
+		OutputStream out = socket.getOutputStream();
+		PrintWriter pw = new PrintWriter(out);
+		pw.write("get_port_and_start\n");
+		pw.flush();
+		Scanner scanner = new Scanner(in);
+		int remote_port = scanner.nextInt();
+		pw.close();
+		scanner.close();
+		socket.close();
+		return remote_port;
 	}
 }
