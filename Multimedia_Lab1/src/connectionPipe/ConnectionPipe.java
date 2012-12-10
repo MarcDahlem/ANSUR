@@ -6,6 +6,7 @@ package connectionPipe;
 import javax.swing.event.EventListenerList;
 
 import org.gstreamer.Bus;
+import org.gstreamer.Caps;
 import org.gstreamer.Element;
 import org.gstreamer.ElementFactory;
 import org.gstreamer.GstObject;
@@ -42,21 +43,21 @@ public class ConnectionPipe {
 		this.stopped=false;
 		this.listeners = new EventListenerList();
 	}
-	
+
 	public void addConnectionPipeListener( ConnectionPipeListener listener ) {
-	    listeners.add(ConnectionPipeListener.class, listener);
-	  }
+		listeners.add(ConnectionPipeListener.class, listener);
+	}
 
-	  public void removeConnectionPipeListener( ConnectionPipeListener listener ) {
-	    listeners.remove( ConnectionPipeListener.class, listener );
-	  }
+	public void removeConnectionPipeListener( ConnectionPipeListener listener ) {
+		listeners.remove( ConnectionPipeListener.class, listener );
+	}
 
-	  private synchronized void notifyPipelineEvent(ConnectionPipeEvent event ) {
-	    for ( ConnectionPipeListener l : listeners.getListeners( ConnectionPipeListener.class) ) {
-	      l.eventAppeared(event);
-	      System.out.println(event.getEventType().name() + " Client (" + event.getGstSource().getName() + "): " +event.getMessage());
-	    }
-	  }
+	private synchronized void notifyPipelineEvent(ConnectionPipeEvent event ) {
+		for ( ConnectionPipeListener l : listeners.getListeners( ConnectionPipeListener.class) ) {
+			l.eventAppeared(event);
+			System.out.println(event.getEventType().name() + " Client (" + event.getGstSource().getName() + "): " +event.getMessage());
+		}
+	}
 
 	public void init() {
 		//create the main connection bin
@@ -67,6 +68,11 @@ public class ConnectionPipe {
 		//create video source
 		Element src = ElementFactory.make("v4l2src", "video capturing source");
 		pipe.add(src);
+
+		// create a video filter to adapt the framerate
+		Element videoFilter = ElementFactory.make("capsfilter", "filter");
+		videoFilter.setCaps(Caps.fromString("framerate=5/1"));
+		pipe.add(videoFilter);
 
 		//create a queue if the encoder is a little slow
 		Element enc_queue = ElementFactory.make("queue", "queue in front of the client encoder");
@@ -93,7 +99,7 @@ public class ConnectionPipe {
 		netSink.set("port", this.port);
 
 		// link all elements
-		Element.linkMany(src, enc_queue, ffmpeg, enc, mux, net_queue, netSink);
+		Element.linkMany(src, videoFilter, enc_queue, ffmpeg, enc, mux, net_queue, netSink);
 
 		//set the pipe
 		this.pipe=pipe;
@@ -150,12 +156,12 @@ public class ConnectionPipe {
 
 		//connect EOS detection and stop the pipe if EOS detected
 		bus.connect(new Bus.EOS() {
-			
+
 			private boolean reantrance = false;
-			
+
 			@Override
 			public void endOfStream(GstObject source) {
-				
+
 				if (!this.reantrance) {
 					this.reantrance=true;
 					ConnectionPipe.this.stop();

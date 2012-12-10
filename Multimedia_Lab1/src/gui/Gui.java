@@ -52,15 +52,15 @@ public class Gui {
 	protected RecorderHost host;
 
 	public Gui() {
-		//set the default recoder host
+		//set the default server host values
 		this.host=new RecorderHost("localhost", 5000);
-		
+
 		//create a listener for the pipelines
 		this.pipeListener = new ConnectionPipeListener() {
 
 			@Override
 			public void eventAppeared(ConnectionPipeEvent event) {
-				// TODO Auto-generated method stub
+				//check which pipeline event appeared and handle it
 				final ConnectionPipeEventType eventType = event.getEventType();
 				final String message = event.getMessage();
 				final GstObject gstSource = event.getGstSource();
@@ -142,11 +142,12 @@ public class Gui {
 		//set the titel
 		shell.setText("Multimedia Systems 2012 Luleå - Lab 2 Client");
 
-		//configure layout and minimum size of the shell
-		shell.setMinimumSize(600, 400);
+		//configure layout of the shell
 		shell.setLayout(new GridLayout(3, false));
 		GridData gridData = new GridData(GridData.FILL_BOTH);
 		shell.setLayoutData(gridData);
+		shell.setMinimumSize(250, 100);
+		shell.setSize(250,100);
 
 		//set a nice background
 		this.setBackground(shell);
@@ -260,7 +261,7 @@ public class Gui {
 		button_settings.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				//TODO settings (server, port, ...)
+				//open a dialog for set port and host
 				Shell shell = Gui.this.display.getActiveShell();
 				ClientSettingsDialog settingsDialog = new ClientSettingsDialog(shell, Gui.this.host);
 				RecorderHost recorderHost = settingsDialog.open();
@@ -306,12 +307,26 @@ public class Gui {
 			pipe.run();
 			this.currentPipe = pipe;
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			this.handleConnectionError(e);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			this.handleConnectionError(e);
 		}
+	}
+
+	private void handleConnectionError(final Exception e) {
+		// show message window and disconnect the client
+		Gui.this.display.asyncExec(new Runnable() {
+
+			@Override
+			public void run() {
+				MessageBox msgBox = new MessageBox(Gui.this.display.getShells()[0], SWT.OK|SWT.ERROR);
+				msgBox.setMessage("Error whith the tcp socket:'" + e.getMessage()+ "'.");
+				msgBox.setText("Error");
+				msgBox.open();
+			}
+		});
+		//stop the clients connection
+		Gui.this.disconnect();
 	}
 
 	private void setButtonsDisconnected() {
