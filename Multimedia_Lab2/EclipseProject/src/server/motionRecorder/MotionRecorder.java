@@ -283,19 +283,19 @@ public class MotionRecorder {
 			public void invoke() {
 				if (motionStart) {	
 					//Assert.isTrue(MotionRecorder.this.isRecording());
-			    	Calendar cal = Calendar.getInstance();
-			    	cal.getTime();
-			    	SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss_SSS");
-			    	String time = sdf.format(cal.getTime());
+					Calendar cal = Calendar.getInstance();
+					cal.getTime();
+					SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss_SSS");
+					String time = sdf.format(cal.getTime());
 					String fileName = "Motion_on_port_"+MotionRecorder.this.port+"_"+time + "."+MotionRecorder.FILEENDING;
 					String fullFileName = MotionRecorder.this.path + fileName;
 					System.out.println("Motion start detected on port " + MotionRecorder.this.port + ". Filename: '" + fullFileName + "'.");
 					this.currentFileName = fullFileName;
 					MotionRecorder.this.startRec(fullFileName);
-					
+
 					MotionRecorderEvent event = new MotionRecorderEvent(MotionRecorder.this, motionDetection, MotionRecorderEventType.MOTION_START, fullFileName);
 					MotionRecorder.this.notifyPipelineEvent(event);
-					
+
 				}else {
 					System.out.println("Motion end detected on port " + MotionRecorder.this.port);
 					MotionRecorder.this.stopRec(false);
@@ -517,9 +517,9 @@ public class MotionRecorder {
 			//remove the blocking status if something is blocked
 			if (blockedPad != null) {
 				//blocked => unblock
-			    blockedPad.setBlocked(false);
+				blockedPad.setBlocked(false);
 			}
-			
+
 			//remove the probe if there is one connected
 			if (probe != null) {
 				// connecnted probe => disconnect it
@@ -529,6 +529,14 @@ public class MotionRecorder {
 		} else {
 			System.out.println("Event received, that is not an eos in '"+occuredPad.getName()+"' on '"+ last.getName() + "'.");
 			return true;
+		}
+	}
+
+	public String getName() {
+		if (this.pipe ==null) {
+			return "null";
+		} else {
+			return this.pipe.getName();
 		}
 	}
 
