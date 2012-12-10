@@ -4,5 +4,7 @@ public enum MotionRecorderEventType {
 	GST_ERROR,
 	GST_WARNING,
 	GST_INFO,
-	STOP
+	STOP,
+	MOTION_START,
+	MOTION_END
 }

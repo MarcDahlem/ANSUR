@@ -3,6 +3,8 @@
  */
 package motionRecorder;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.List;
 
 import javax.swing.event.EventListenerList;
@@ -33,6 +35,8 @@ import org.gstreamer.swt.VideoComponent;
  */
 public class MotionRecorder {
 
+	public static final String FILEENDING = "ogg";
+
 	/**
 	 * The pipeline containing the camerabin and is used to control the recorder
 	 */
@@ -56,17 +60,29 @@ public class MotionRecorder {
 
 	private boolean stopped;
 
+	private String path;
+
 	/** The default constructor for this recorder.
 	 * It will set the values of this auto-recording pipe.
 	 * To initialize it use {@link #init()} and after that run the recorder with {@link #run()}
 	 * It supports listeners that inform about pipeline changes like motion detected(aka recording started), bus errors, warnings etc.
 	 * 
 	 * @param port the port on which the server should listen for the incoming
+	 * @throws IllegalArgumentException if the given recording path is null or the port <1 or >99999
 	 */
-	public MotionRecorder(int port) {
+	public MotionRecorder(int port, String path) {
+		if (path==null || port<1 || port>99999) {
+			throw new IllegalArgumentException();
+		}
 		this.port = port;
 		this.listeners = new EventListenerList();
 		this.stopped=false;
+		String fileSeperator = System.getProperty("file.separator");
+		if (path.endsWith(fileSeperator)) {
+			this.path = path;
+		} else {
+			this.path = path+fileSeperator;
+		}
 	}
 
 	public void addMotionRecorderListener( MotionRecorderListener listener ) {
@@ -80,7 +96,7 @@ public class MotionRecorder {
 	private synchronized void notifyPipelineEvent(MotionRecorderEvent event ) {
 		for (MotionRecorderListener l : listeners.getListeners(MotionRecorderListener.class) ) {
 			l.eventAppeared(event);
-			System.out.println(event.getEventType().name() + " Client (" + event.getGstSource().getName() + "): " +event.getMessage());
+			System.out.println(event.getEventType().name() + " (" + event.getGstSource().getName() + "): " +event.getMessage());
 		}
 	}
 
@@ -257,17 +273,33 @@ public class MotionRecorder {
 			}
 		});
 
-		Element motionDetection = ElementFactory.make("motiondetector", "motion detection on port " + this.port);
+		final Element motionDetection = ElementFactory.make("motiondetector", "motion detection on port " + this.port);
 		motionDetection.set("draw_motion", true);
 		//add motion detection callbacks
 		motionDetection.connect("notify::motion-detected", new Closure() {
 			boolean motionStart = true;
+			String currentFileName = "";
 			@SuppressWarnings("unused") //it is used from the JNA, therefore that it is set as callback
 			public void invoke() {
-				if (motionStart) {
-					System.out.println("Motion start detected  on port " + MotionRecorder.this.port);
+				if (motionStart) {	
+					//Assert.isTrue(MotionRecorder.this.isRecording());
+			    	Calendar cal = Calendar.getInstance();
+			    	cal.getTime();
+			    	SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss_SSS");
+			    	String time = sdf.format(cal.getTime());
+					String fileName = "Motion_on_port_"+MotionRecorder.this.port+"_"+time + "."+MotionRecorder.FILEENDING;
+					String fullFileName = MotionRecorder.this.path + fileName;
+					System.out.println("Motion start detected on port " + MotionRecorder.this.port + ". Filename: '" + fullFileName + "'.");
+					this.currentFileName = fullFileName;
+					MotionRecorder.this.startRec(fullFileName);
+					
+					MotionRecorderEvent event = new MotionRecorderEvent(MotionRecorder.this, motionDetection, MotionRecorderEventType.MOTION_START, fullFileName);
+					MotionRecorder.this.notifyPipelineEvent(event);
+					
 				}else {
 					System.out.println("Motion end detected on port " + MotionRecorder.this.port);
+					MotionRecorder.this.stopRec(false);
+					MotionRecorderEvent event = new MotionRecorderEvent(MotionRecorder.this, motionDetection, MotionRecorderEventType.MOTION_END, this.currentFileName);
 				}
 				motionStart = !motionStart;
 			}
@@ -286,15 +318,6 @@ public class MotionRecorder {
 
 		//return the created sourceBin
 		return sourceBin;
-		//		Bin newSBin = new Bin("source");
-		//		Element vid = ElementFactory.make("v4l2src", "video");
-		//		newSBin.addMany(vid);
-		// add a ghost pad, so that the bin is accessible from the outside
-		//		Pad staticSourcePad2 = vid.getStaticPad("src");
-		//		GhostPad ghost2 = new GhostPad("src", staticSourcePad2);
-		//		newSBin.addPad(ghost2);
-
-		//return newSBin;
 	}
 
 	/*
@@ -308,7 +331,7 @@ public class MotionRecorder {
 	 * stops the video recording
 	 * If not recording nothing happens.
 	 */
-	public void stopRec(boolean stopPipe) {
+	private void stopRec(boolean stopPipe) {
 		if (this.isRecording()) {
 			//recording => stop recording
 			Bin newFakeBin = this.createFakeRecordBin();
@@ -327,7 +350,7 @@ public class MotionRecorder {
 	 * @param fileName used to capture the data to
 	 * @throws {@link java.lang.IllegalArgumentException} if the given filename is null.
 	 */
-	public void startRec(String fileName) {
+	private void startRec(String fileName) {
 		//check if the filename is null
 		if (fileName == null) {
 			throw new IllegalArgumentException("Filename to record to cannot be null");
