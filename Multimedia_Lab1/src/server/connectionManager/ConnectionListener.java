@@ -1,4 +1,4 @@
-package connectionManager;
+package server.connectionManager;
 
 import java.util.EventListener;
 

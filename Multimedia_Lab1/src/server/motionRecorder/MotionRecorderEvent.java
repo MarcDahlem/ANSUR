@@ -1,4 +1,4 @@
-package motionRecorder;
+package server.motionRecorder;
 
 import java.util.EventObject;
 

@@ -1,4 +1,4 @@
-package motionRecorder;
+package server.motionRecorder;
 
 public enum MotionRecorderEventType {
 	GST_ERROR,

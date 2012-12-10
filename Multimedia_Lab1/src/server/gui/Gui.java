@@ -10,15 +10,11 @@
  * 		 It is shown menu_off_time ms (default 3000) after movement of the curser stopped. Then it will switch back to MODE2. 
  */
 
-package gui;
+package server.gui;
 
 import java.io.IOException;
 import java.util.ArrayList;
 
-import motionRecorder.MotionRecorder;
-import motionRecorder.MotionRecorderEvent;
-import motionRecorder.MotionRecorderEventType;
-import motionRecorder.MotionRecorderListener;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
@@ -48,10 +44,15 @@ import org.eclipse.swt.widgets.Shell;
 import org.gstreamer.GstObject;
 import org.gstreamer.swt.VideoComponent;
 
-import connectionManager.ConnectionEvent;
-import connectionManager.ConnectionEventType;
-import connectionManager.ConnectionListener;
-import connectionManager.ConnectionManager;
+import server.connectionManager.ConnectionEvent;
+import server.connectionManager.ConnectionEventType;
+import server.connectionManager.ConnectionListener;
+import server.connectionManager.ConnectionManager;
+import server.motionRecorder.MotionRecorder;
+import server.motionRecorder.MotionRecorderEvent;
+import server.motionRecorder.MotionRecorderEventType;
+import server.motionRecorder.MotionRecorderListener;
+
 
 
 public class Gui {

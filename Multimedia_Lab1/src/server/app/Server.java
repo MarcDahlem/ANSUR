@@ -1,9 +1,10 @@
 
-package app;
+package server.app;
 
-import gui.Gui;
 
 import org.gstreamer.Gst;
+
+import server.gui.Gui;
 
 /**
  * 

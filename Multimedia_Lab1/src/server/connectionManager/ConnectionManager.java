@@ -1,4 +1,4 @@
-package connectionManager;
+package server.connectionManager;
 
 import java.io.IOException;
 import java.io.InputStream;
