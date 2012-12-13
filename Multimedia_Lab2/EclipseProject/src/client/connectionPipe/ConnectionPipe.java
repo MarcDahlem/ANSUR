@@ -66,7 +66,8 @@ public class ConnectionPipe {
 		this.addBusMessageListeners(pipe);
 
 		//create video source
-		Element src = ElementFactory.make("v4l2src", "video capturing source");
+		Element src = ElementFactory.make("autovideosrc", "video capturing source");
+		//Element src = ElementFactory.make("videotestsrc", "video capturing test source");
 		pipe.add(src);
 
 		// create a video filter to adapt the framerate

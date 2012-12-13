@@ -38,7 +38,7 @@ class Dialog_connectedClients {
 
 		final Button button_OK = new Button(dialog, SWT.PUSH);
 		button_OK.setText("OK");
-		
+
 		button_OK.addSelectionListener( new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent event) {

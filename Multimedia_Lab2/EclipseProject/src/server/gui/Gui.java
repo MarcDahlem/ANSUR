@@ -99,7 +99,7 @@ public class Gui {
 	public Gui() {
 		//create the list containing all recorders for the connect streams
 		this.pipeList = new ArrayList<MotionRecorder>();
-		
+
 		//initialize the default overlay text
 		this.currentOverlayMessage="";
 
@@ -227,7 +227,7 @@ public class Gui {
 					break;
 				case MOTION_START:
 					Gui.this.display.asyncExec(new Runnable() {
-						
+
 						@Override
 						public void run() {
 							//switch video sink to the latest motion detection stream
@@ -241,14 +241,14 @@ public class Gui {
 							}
 							// update the overlay
 							Gui.this.updateOverlay("Motion recording started on '" + source.getName()+"'.");
-							
+
 						}
 					});
 					break;
 				case MOTION_END:
 					//TODO filename in list for check on download if it is still recording.
 					Gui.this.display.asyncExec(new Runnable() {
-						
+
 						@Override
 						public void run() {
 							// update the overlay
@@ -310,38 +310,38 @@ public class Gui {
 
 	private synchronized void updateOverlay(final String overlayMessageToAdd) {
 		this.display.asyncExec(new Runnable() {
-			
+
 			@Override
 			public void run() {
 				if (overlayMessageToAdd == null) {
 					throw new IllegalArgumentException();
 				}
 				String newOverlayMessage;
-				
+
 				//append the new message to the current one. If there is one, append it in a new line.
 				if (Gui.this.currentOverlayMessage.isEmpty()) {
 					newOverlayMessage = overlayMessageToAdd;
 				} else {
 					newOverlayMessage = Gui.this.currentOverlayMessage+System.getProperty("line.separator") + overlayMessageToAdd;
 				}
-				
+
 				Gui.this.vid.setOverlay(newOverlayMessage);
 				Gui.this.currentOverlayMessage = newOverlayMessage;
 				Gui.this.display.timerExec(Gui.OVERLAY_TIME, new Runnable() {
-					
+
 					@Override
 					public void run() {
 						//delete the added overlay message after Gui.OVERLAY_TIME milliseconds
 						//assert Gui.this.currentOverlayMessage.startsWith(overlayMessage)
 						String withoutOverlayText = Gui.this.currentOverlayMessage.substring(overlayMessageToAdd.length());
 						// == Gui.this.currentOverlayMessage.replaceFirst(overlayMessageToAdd, "");
-						
+
 						//remove the newline if there is one
 						if (!withoutOverlayText.isEmpty()) {
 							//assert withoutOverlayText.startswith(System.getProperty("line.seperator");
 							withoutOverlayText = withoutOverlayText.substring(System.getProperty("line.separator").length());
 						}
-						
+
 						//set the text with the removed overlay
 						Gui.this.vid.setOverlay(withoutOverlayText);
 						Gui.this.currentOverlayMessage=withoutOverlayText;
@@ -359,7 +359,7 @@ public class Gui {
 		recorder.removeMotionRecorderListener(this.listener_pipe);
 		//delete the recorder from the known recorders
 		this.pipeList.remove(recorder);
-		
+
 		//check if it is the current visible recorder and if, delete the video window out of it
 		if (recorder == this.current_recorder) {
 			this.current_recorder.setPlayer(this.vid, false, true);
