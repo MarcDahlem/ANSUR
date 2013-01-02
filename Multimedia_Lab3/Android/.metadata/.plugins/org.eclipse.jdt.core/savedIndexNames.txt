@@ -1,0 +1,4 @@
+INDEX VERSION 1.126+C:\Users\Tjarb\Desktop\Skole\LTU\Multimedia\Programming\.metadata\.plugins\org.eclipse.jdt.core
+1046385825.index
+3352491446.index
+383545601.index

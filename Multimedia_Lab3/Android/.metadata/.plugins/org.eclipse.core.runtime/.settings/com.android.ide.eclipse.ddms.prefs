@@ -1,0 +1,11 @@
+#Wed Jan 02 13:45:26 CET 2013
+logcat.view.colsize.Text=543
+logcat.view.colsize.TID=50
+logcat.view.colsize.Level=29
+ddms.logcat.automonitor.userprompt=true
+logcat.view.colsize.PID=50
+logcat.view.colsize.Tag=107
+logcat.view.colsize.Application=237
+logcat.view.colsize.Time=130
+eclipse.preferences.version=1
+logcat.view.filters.list=name\: 'Degbuging', tag\: 'Debug', text\: '', pid\: '', app\: '', level\: 'verbose', name\: 'Launch VLC', tag\: 'Launch', text\: '', pid\: '', app\: '', level\: 'verbose', 
