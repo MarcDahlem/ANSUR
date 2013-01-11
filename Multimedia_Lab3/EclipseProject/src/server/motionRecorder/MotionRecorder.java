@@ -62,19 +62,27 @@ public class MotionRecorder {
 
 	private String path;
 
+	private String roomName;
+
+	private String camerName;
+
 	/** The default constructor for this recorder.
 	 * It will set the values of this auto-recording pipe.
 	 * To initialize it use {@link #init()} and after that run the recorder with {@link #run()}
 	 * It supports listeners that inform about pipeline changes like motion detected(aka recording started), bus errors, warnings etc.
 	 * 
 	 * @param port the port on which the server should listen for the incoming
+	 * @param roomName the name of the room where the camera is in
+	 * @param cameraName the name of the camera in the given room
 	 * @throws IllegalArgumentException if the given recording path is null or the port <1 or >99999
 	 */
-	public MotionRecorder(int port, String path) {
-		if (path==null || port<1 || port>99999) {
+	public MotionRecorder(int port, String roomName, String cameraName, String path) {
+		if (path==null || port<1 || port>99999 || roomName == null || cameraName == null) {
 			throw new IllegalArgumentException();
 		}
 		this.port = port;
+		this.roomName = roomName;
+		this.camerName = cameraName;
 		this.listeners = new EventListenerList();
 		this.stopped=false;
 		String fileSeperator = System.getProperty("file.separator");
@@ -533,11 +541,8 @@ public class MotionRecorder {
 	}
 
 	public String getName() {
-		if (this.pipe ==null) {
-			return "null";
-		} else {
-			return this.pipe.getName();
-		}
+		String name = this.camerName + " in " + this.roomName + " (port " + this.port+ ")";
+		return name;
 	}
 
 }

@@ -279,8 +279,10 @@ public class Gui {
 				final int eventPort = event.getPort();
 				switch (eventType) {
 				case CLIENT_START:
+					String roomName = event.getRoomName();
+					String cameraName = event.getCameraName();
 					// Assert.isTrue(Gui.CapturingPath != null);
-					MotionRecorder recorder = new MotionRecorder(eventPort, Gui.CapturingPath);
+					MotionRecorder recorder = new MotionRecorder(eventPort, roomName, cameraName, Gui.CapturingPath);
 					recorder.addMotionRecorderListener(Gui.this.listener_pipe);
 					recorder.init();
 					//connect video if its the first stream

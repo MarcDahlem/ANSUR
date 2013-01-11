@@ -54,7 +54,7 @@ public class Gui {
 
 	public Gui() {
 		//set the default server host values
-		this.host=new RecorderHost("localhost", 5000);
+		this.host=new RecorderHost("localhost", 5000, "defaultRoom", "defaultCamera");
 
 		//create a listener for the pipelines
 		this.pipeListener = new ConnectionPipeListener() {

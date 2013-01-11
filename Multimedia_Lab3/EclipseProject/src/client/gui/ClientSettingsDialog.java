@@ -32,8 +32,16 @@ class ClientSettingsDialog {
 		final Shell dialog = new Shell(this.shell, SWT.APPLICATION_MODAL | SWT.DIALOG_TRIM);
 		dialog.setLayout(new GridLayout(2, false));
 		dialog.setText("Settings");
-		dialog.setSize(400, 150);
+		dialog.setSize(400, 300);
 
+		//add remote properties
+		Label label_Remote = new Label(dialog, SWT.NONE);
+		label_Remote.setText("Remote:");
+		GridData remoteLayoutData = new GridData(SWT.FILL, SWT.CENTER, false, false);
+		remoteLayoutData.horizontalSpan=2;
+		label_Remote.setLayoutData(remoteLayoutData);
+
+		//...like host
 		Label label_Host = new Label(dialog, SWT.NONE);
 		label_Host.setText("Host");
 		label_Host.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
@@ -43,6 +51,7 @@ class ClientSettingsDialog {
 
 		text_HostName.setText(this.oldRecorderHost.getHostName());
 
+		// ... and port
 		final Label label_Port = new Label(dialog, SWT.NONE);
 		label_Port.setText("Port");
 		label_Port.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
@@ -77,11 +86,43 @@ class ClientSettingsDialog {
 
 		});
 
+		//and add local camera properties
+		Label label_Cam = new Label(dialog, SWT.NONE);
+		label_Cam.setText("This Camera:");
+		GridData camLayoutData = new GridData(SWT.FILL, SWT.CENTER, false, false);
+		camLayoutData.horizontalSpan=2;
+		label_Cam.setLayoutData(camLayoutData);
+
+		//...like roomname
+		Label label_Room = new Label(dialog, SWT.NONE);
+		label_Room.setText("Room");
+		label_Room.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
+
+		final Text text_RoomName = new Text(dialog, SWT.SINGLE | SWT.BORDER);
+		text_RoomName.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true));
+
+		text_RoomName.setText(this.oldRecorderHost.getRoom());
+
+		//...and camera name
+		Label label_CamName = new Label(dialog, SWT.NONE);
+		label_CamName.setText("Camera name");
+		label_CamName.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
+
+		final Text text_CamName = new Text(dialog, SWT.SINGLE | SWT.BORDER);
+		text_CamName.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true));
+
+		text_CamName.setText(this.oldRecorderHost.getCameraName());
+		
+		
+		//finally add the ok and cancel buttons
+
 		final Button button_OK = new Button(dialog, SWT.PUSH);
 		button_OK.setText("OK");
 
 		Button button_Cancel = new Button(dialog, SWT.PUSH);
 		button_Cancel.setText("Cancel");
+
+
 
 		SelectionListener listener = new SelectionAdapter() {
 			@Override
@@ -99,9 +140,20 @@ class ClientSettingsDialog {
 					if (hostName.trim().isEmpty()) {
 						hostName = ClientSettingsDialog.this.oldRecorderHost.getHostName();
 					}
-					System.out.println(port);
-					System.out.println(hostName);
-					ClientSettingsDialog.this.recorderHost = new RecorderHost(hostName, port);
+					
+					String roomName = text_RoomName.getText();
+
+					if (roomName.trim().isEmpty()) {
+						roomName = ClientSettingsDialog.this.oldRecorderHost.getRoom();
+					}
+					
+					String camName = text_CamName.getText();
+
+					if (camName.trim().isEmpty()) {
+						camName = ClientSettingsDialog.this.oldRecorderHost.getCameraName();
+					}
+					
+					ClientSettingsDialog.this.recorderHost = new RecorderHost(hostName, port, roomName, camName);
 				}
 				dialog.close();
 			}
