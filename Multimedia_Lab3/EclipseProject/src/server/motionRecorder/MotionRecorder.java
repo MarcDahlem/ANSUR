@@ -6,6 +6,7 @@ package server.motionRecorder;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
+import java.util.TreeSet;
 
 import javax.swing.event.EventListenerList;
 
@@ -66,6 +67,8 @@ public class MotionRecorder {
 
 	private String camerName;
 
+	private TreeSet<String> registeredGCMs;
+
 	/** The default constructor for this recorder.
 	 * It will set the values of this auto-recording pipe.
 	 * To initialize it use {@link #init()} and after that run the recorder with {@link #run()}
@@ -84,6 +87,7 @@ public class MotionRecorder {
 		this.roomName = roomName;
 		this.camerName = cameraName;
 		this.listeners = new EventListenerList();
+		this.registeredGCMs = new TreeSet<String>();
 		this.stopped=false;
 		String fileSeperator = System.getProperty("file.separator");
 		if (path.endsWith(fileSeperator)) {
@@ -543,6 +547,33 @@ public class MotionRecorder {
 	public String getName() {
 		String name = this.camerName + " in " + this.roomName + " (port " + this.port+ ")";
 		return name;
+	}
+	
+	public String getRoomName() {
+		return this.roomName;
+	}
+	
+	public String getCameraName() {
+		return this.camerName;
+	}
+
+	public boolean isGCMRegistered(String gcm) {
+		// returns if the gcm is registered for this recorder
+		return this.registeredGCMs.contains(gcm);
+	}
+
+	public void deregisterGCM(String gcm) {
+		// delete this gcm from the registered clients
+		this.registeredGCMs.remove(gcm);
+		
+	}
+
+	public int getPort() {
+		return this.port;
+	}
+
+	public void registerGCM(String gcm) {
+		this.registeredGCMs.add(gcm);
 	}
 
 }

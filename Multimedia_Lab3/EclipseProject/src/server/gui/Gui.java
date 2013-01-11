@@ -14,6 +14,7 @@ package server.gui;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.TreeSet;
 
 
 import org.eclipse.swt.SWT;
@@ -90,7 +91,7 @@ public class Gui {
 
 	private volatile String currentOverlayMessage;
 
-	private ArrayList<String> gcmList; //list with all connected google cloud message ids
+	private TreeSet<String> gcmSet; //list with all connected google cloud message ids
 
 	/**
 	 * The constructur of the Gui initialises counters, listeners and the timer.
@@ -101,9 +102,9 @@ public class Gui {
 	public Gui() {
 		//create the list containing all recorders for the connect streams
 		this.pipeList = new ArrayList<MotionRecorder>();
-		
+
 		//create the list that contains all google cloud message ids from the connected clients
-		this.gcmList = new ArrayList<String>();
+		this.gcmSet = new TreeSet<String>();
 
 		//initialize the default overlay text
 		this.currentOverlayMessage="";
@@ -299,15 +300,59 @@ public class Gui {
 					recorder.run();
 					Gui.this.updateOverlay("Client connected on port " + eventPort);
 					break;
-				case CLIENT_REGISTER:
+				case CLIENT_REGISTER: {
 					String gcm = event.getGCM();
 					//client tries to register. Add it to the gcm list if not in
-					if (Gui.this.gcmList.contains(gcm)) {
+					if (Gui.this.gcmSet.contains(gcm)) {
 						event.errorAppeared();
 					} else {
-						Gui.this.gcmList.add(gcm);
+						Gui.this.gcmSet.add(gcm);
 					}
 					break;
+				}
+				case CLIENT_DEREGISTER: {
+					String gcm = event.getGCM();
+					//client tries to deregister. Delete it from the gcm list if existent and remove it from all movie notifications
+					if (Gui.this.gcmSet.contains(gcm)) {
+						Gui.this.deleteAllNotifications(gcm);
+						Gui.this.gcmSet.remove(gcm);
+					} else {
+						event.errorAppeared();
+					}
+					break;
+				}
+				case CLIENT_SUBSCRIBE: {
+					String gcm = event.getGCM();
+					int port = event.getPort();
+
+
+					boolean success = Gui.this.subscribe(gcm,port);
+
+					if (!success) {
+						event.errorAppeared();
+					}
+
+					break;
+				}
+				case CLIENT_UNSUBSCRIBE: {
+					String gcm = event.getGCM();
+					int port = event.getPort();
+
+
+					boolean success = Gui.this.unsubscribe(gcm,port);
+
+					if (!success) {
+						event.errorAppeared();
+					}
+
+					break;
+				}
+				case CLIENT_GET_CAMS: {
+					// add all recorders to the event
+					for (MotionRecorder rec:Gui.this.pipeList) {
+						event.addMotionRecorder(rec);
+					}
+				}
 				default:
 					Gui.this.display.asyncExec(new Runnable() {
 
@@ -322,6 +367,53 @@ public class Gui {
 				}
 			}
 		};
+	}
+
+	protected boolean unsubscribe(String gcm, int port) {
+		// unsubscribe the gcm from recorder on the given port
+		if (!Gui.this.gcmSet.contains(gcm)) {
+			//not a valid gcm id
+			return false;
+		}
+
+		for (MotionRecorder recorder: this.pipeList) {
+			if (recorder.getPort() == port) {
+				recorder.deregisterGCM(gcm);
+				return true;
+			}
+		}
+
+		// no recorder on the given port found
+		return false;
+	}
+
+	private boolean subscribe(String gcm, int port) {
+		// subscribe the gcm to the given port
+		if (!Gui.this.gcmSet.contains(gcm)) {
+			//not a valid gcm id
+			return false;
+		}
+
+		for (MotionRecorder recorder: this.pipeList) {
+			if (recorder.getPort() == port) {
+				recorder.registerGCM(gcm);
+				return true;
+			}
+		}
+
+		// no recorder on the given port found
+		return false;
+
+	}
+
+	protected void deleteAllNotifications(String gcm) {
+		// delete the given gcm from all motion recorders
+		for (MotionRecorder recorder:this.pipeList) {
+			if (recorder.isGCMRegistered(gcm)) {
+				recorder.deregisterGCM(gcm);
+			}
+		}
+
 	}
 
 	private synchronized void updateOverlay(final String overlayMessageToAdd) {

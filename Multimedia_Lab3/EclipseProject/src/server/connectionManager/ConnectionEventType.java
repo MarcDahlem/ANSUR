@@ -10,7 +10,7 @@ public enum ConnectionEventType {
 	 *  returns port on which the new pipe is created
 	 *  exception if camera already existing in this room //TODO (not implemented at the moment)
 	 */
-	CAM_CONNECT_GET_PORT, //
+	CAM_CONNECT_GET_PORT,
 
 	
 	/** Client Registration
@@ -21,10 +21,19 @@ public enum ConnectionEventType {
 	 */
 	CLIENT_REGISTER,
 	
-	/** Client request for cams
+	/** Client deregistration
+	 * a android client wants to deregister
+	 * parameters (line)
+	 * 	1: GCM ID
+	 * returns true if successfully deregistered, false else
+	 */
+	CLIENT_DEREGISTER,
+	
+	/** Client request for cams notidications
 	 * a android client wants to get all connected cameras
 	 * parameters: no
-	 * returns: (1) n number of cameras (2-(n+1)) camera ports //TODO
+	 * returns: (1) n number of cameras
+	 * 			(2-(n+1)) camera (line-divided port room cameraname)
 	 */
 	CLIENT_GET_CAMS,
 	
@@ -32,9 +41,10 @@ public enum ConnectionEventType {
 	 * a android client wants to subscribe for a given number of cameras
 	 * parameters (line)
 	 * 	1: int n number of cameras connect to
-	 *  2-(n+1): port of the cameras to them one wants to be notifed about
-	 *  returns nothing
-	 *  exception: if a camera is not available
+	 * 	2: String google cloud message ID
+	 *  3-(n+2): port of the cameras to them one wants to be notifed about
+	 *  returns done if done
+	 *  exception: if a camera is not available or the gcm is not valid.
 	 */
 	CLIENT_SUBSCRIBE,
 	
@@ -42,8 +52,9 @@ public enum ConnectionEventType {
 	 * a android client wants to unsubscribe for some cameras and stop notifications for them
 	 * parameters (line)
 	 *   1: int n number of cameras to be unsubscibed
-	 *   2-(n+1): camera ports to unsubscibe
-	 *   returns nothing
+	 *   2: String Google Cloud Messaging ID
+	 *   3-(n+2): camera ports to unsubscibe
+	 *   returns done if done
 	 *   exception if not available
 	 */
 	CLIENT_UNSUBSCRIBE,

@@ -1,6 +1,9 @@
 package server.connectionManager;
 
+import java.util.ArrayList;
 import java.util.EventObject;
+
+import server.motionRecorder.MotionRecorder;
 
 public class ConnectionEvent extends EventObject {
 
@@ -20,11 +23,14 @@ public class ConnectionEvent extends EventObject {
 
 	private String gcm;
 
+	private ArrayList<MotionRecorder> recorderList;
+
 	public ConnectionEvent(Object source, ConnectionEventType eventType) {
 		super(source);
 		//set the message and event type
 		this.eventType = eventType;
 		this.errorAppeared=false;
+		this.recorderList=new ArrayList<MotionRecorder>();
 	}
 	
 	void setEventPort(int eventPort) {
@@ -76,6 +82,15 @@ public class ConnectionEvent extends EventObject {
 	
 	public String getGCM(){
 		return this.gcm;
+	}
+
+	ArrayList<MotionRecorder> getAllCameras() {
+		// return all motion recorders that have been added to this event after a get all movie request
+		return this.recorderList;
+	}
+	
+	public void addMotionRecorder(MotionRecorder recorder) {
+		this.recorderList.add(recorder);
 	}
 
 
