@@ -12,11 +12,23 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 
+import com.google.android.gcm.GCMRegistrar;
+
 public class MainActivity extends Activity {
+
+	private static final String SENDER_ID = "862106151827";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		GCMRegistrar.checkDevice(this);
+		GCMRegistrar.checkManifest(this);
+		final String regId = GCMRegistrar.getRegistrationId(this);
+		if (regId.equals("")) {
+		  GCMRegistrar.register(this, SENDER_ID);
+		} else {
+		  Log.v("GCM", "Already registered");
+		}
 		setContentView(R.layout.activity_main);
 	}
 

@@ -4,5 +4,6 @@
 	<classpathentry kind="src" path="gen"/>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
+	<classpathentry kind="lib" path="/home/marc/Dokumente_lokal/Uni/WS1213/Q2/adt-bundle-linux/sdk/extras/google/gcm/gcm-client/dist/gcm.jar" sourcepath="/home/marc/Dokumente_lokal/Uni/WS1213/Q2/adt-bundle-linux/sdk/extras/google/gcm/gcm-client/dist/gcm-src.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>
