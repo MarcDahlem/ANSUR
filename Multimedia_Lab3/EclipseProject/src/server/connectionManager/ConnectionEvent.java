@@ -8,7 +8,7 @@ public class ConnectionEvent extends EventObject {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	
+
 	private ConnectionEventType eventType;
 	private int port;
 

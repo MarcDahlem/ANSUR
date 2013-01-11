@@ -59,6 +59,8 @@ public class Gui {
 
 	private static final int SERVER_PORT = 5000;
 
+	private static final int OVERLAY_TIME = 5000; //milliseconds
+
 	//These Strings are used to build the filename, where the recorded files are saved.
 	private static String CapturingPath = null;
 
@@ -86,6 +88,8 @@ public class Gui {
 	private ConnectionManager currentConnectionManager;
 	private volatile ArrayList<MotionRecorder> pipeList;
 
+	private volatile String currentOverlayMessage;
+
 	/**
 	 * The constructur of the Gui initialises counters, listeners and the timer.
 	 * The GUI is not configured after the constructor finishes.
@@ -95,6 +99,9 @@ public class Gui {
 	public Gui() {
 		//create the list containing all recorders for the connect streams
 		this.pipeList = new ArrayList<MotionRecorder>();
+
+		//initialize the default overlay text
+		this.currentOverlayMessage="";
 
 		//create the listener to react on key presses
 		this.listener_keypress = new KeyListener() {
@@ -220,7 +227,7 @@ public class Gui {
 					break;
 				case MOTION_START:
 					Gui.this.display.asyncExec(new Runnable() {
-						
+
 						@Override
 						public void run() {
 							//switch video sink to the latest motion detection stream
@@ -233,18 +240,19 @@ public class Gui {
 								source.setPlayer(Gui.this.vid, true, false);
 							}
 							// update the overlay
-							Gui.this.vid.setOverlay("Motion recording started to file '" + message + "'.");
+							Gui.this.updateOverlay("Motion recording started on '" + source.getName()+"'.");
+
 						}
 					});
 					break;
 				case MOTION_END:
 					//TODO filename in list for check on download if it is still recording.
 					Gui.this.display.asyncExec(new Runnable() {
-						
+
 						@Override
 						public void run() {
 							// update the overlay
-							Gui.this.vid.setOverlay("Motion recording stopped.");
+							Gui.this.updateOverlay("Motion recording stopped on '" + source.getName()+"'.");
 						}
 					});
 					break;
@@ -282,8 +290,7 @@ public class Gui {
 					}
 					Gui.this.pipeList.add(recorder);
 					recorder.run();
-					vid.setOverlay("Client connected on port " + eventPort);
-					vid.showOverlay(true);
+					Gui.this.updateOverlay("Client connected on port " + eventPort);
 					break;
 				default:
 					Gui.this.display.asyncExec(new Runnable() {
@@ -301,6 +308,50 @@ public class Gui {
 		};
 	}
 
+	private synchronized void updateOverlay(final String overlayMessageToAdd) {
+		this.display.asyncExec(new Runnable() {
+
+			@Override
+			public void run() {
+				if (overlayMessageToAdd == null) {
+					throw new IllegalArgumentException();
+				}
+				String newOverlayMessage;
+
+				//append the new message to the current one. If there is one, append it in a new line.
+				if (Gui.this.currentOverlayMessage.isEmpty()) {
+					newOverlayMessage = overlayMessageToAdd;
+				} else {
+					newOverlayMessage = Gui.this.currentOverlayMessage+System.getProperty("line.separator") + overlayMessageToAdd;
+				}
+
+				Gui.this.vid.setOverlay(newOverlayMessage);
+				Gui.this.currentOverlayMessage = newOverlayMessage;
+				Gui.this.display.timerExec(Gui.OVERLAY_TIME, new Runnable() {
+
+					@Override
+					public void run() {
+						//delete the added overlay message after Gui.OVERLAY_TIME milliseconds
+						//assert Gui.this.currentOverlayMessage.startsWith(overlayMessage)
+						String withoutOverlayText = Gui.this.currentOverlayMessage.substring(overlayMessageToAdd.length());
+						// == Gui.this.currentOverlayMessage.replaceFirst(overlayMessageToAdd, "");
+
+						//remove the newline if there is one
+						if (!withoutOverlayText.isEmpty()) {
+							//assert withoutOverlayText.startswith(System.getProperty("line.seperator");
+							withoutOverlayText = withoutOverlayText.substring(System.getProperty("line.separator").length());
+						}
+
+						//set the text with the removed overlay
+						Gui.this.vid.setOverlay(withoutOverlayText);
+						Gui.this.currentOverlayMessage=withoutOverlayText;
+					}
+				});
+
+			}
+		});
+	}
+
 	private void stopRecorder(MotionRecorder recorder) {
 
 		//stop the recorder and remove it from the known recorder list
@@ -308,7 +359,7 @@ public class Gui {
 		recorder.removeMotionRecorderListener(this.listener_pipe);
 		//delete the recorder from the known recorders
 		this.pipeList.remove(recorder);
-		
+
 		//check if it is the current visible recorder and if, delete the video window out of it
 		if (recorder == this.current_recorder) {
 			this.current_recorder.setPlayer(this.vid, false, true);
@@ -650,6 +701,8 @@ public class Gui {
 		//create the video component and set its default behaviour
 		VideoComponent vid = new VideoComponent(vidComposite, SWT.BORDER);
 		vid.setKeepAspect(true);
+		vid.setOverlay(this.currentOverlayMessage);
+		vid.showOverlay(true);
 		vid.addKeyListener(listener_keypress);
 
 		//TODO

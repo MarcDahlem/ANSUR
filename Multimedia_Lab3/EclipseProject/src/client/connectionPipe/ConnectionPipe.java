@@ -66,21 +66,31 @@ public class ConnectionPipe {
 		this.addBusMessageListeners(pipe);
 
 		//create video source
-		Element src = ElementFactory.make("v4l2src", "video capturing source");
+		Element src = ElementFactory.make("autovideosrc", "video capturing source");
+		//Element src = ElementFactory.make("videotestsrc", "video capturing test source");
 		pipe.add(src);
 
 		// create a video filter to adapt the framerate
-		Element videoFilter = ElementFactory.make("capsfilter", "filter");
-		videoFilter.setCaps(Caps.fromString("framerate=5/1"));
+		Element videorate = ElementFactory.make("videorate", "framerate adaption");
+		pipe.add(videorate);
+		Element ffmpeg1 = ElementFactory.make("ffmpegcolorspace", "color switcher for video filter");
+		pipe.add(ffmpeg1);
+		Element videoFilter = ElementFactory.make("capsfilter", "filter for framerate adaption");
+		videoFilter.setCaps(Caps.fromString("video/x-raw-yuv, framerate=15/1"));
 		pipe.add(videoFilter);
+		Element videoscale = ElementFactory.make("videoscale", "video scaler");
+		pipe.add(videoscale);
+		Element videoFilter2 = ElementFactory.make("capsfilter", "filter for video scaling");
+		videoFilter2.setCaps(Caps.fromString("video/x-raw-yuv, width=320,height=240"));
+		pipe.add(videoFilter2);
 
 		//create a queue if the encoder is a little slow
 		Element enc_queue = ElementFactory.make("queue", "queue in front of the client encoder");
 		pipe.add(enc_queue);
 
 		//create a color space changer if the video is not in the correct color space for the encoder
-		Element ffmpeg = ElementFactory.make("ffmpegcolorspace", "color switcher for client encoding");
-		pipe.add(ffmpeg);
+		Element ffmpeg2 = ElementFactory.make("ffmpegcolorspace", "color switcher for client encoding");
+		pipe.add(ffmpeg2);
 
 		//create encoder part to send video over the network
 		Element enc= ElementFactory.make ("theoraenc", "theory encoder on client");
@@ -99,7 +109,7 @@ public class ConnectionPipe {
 		netSink.set("port", this.port);
 
 		// link all elements
-		Element.linkMany(src, videoFilter, enc_queue, ffmpeg, enc, mux, net_queue, netSink);
+		Element.linkMany(src, videorate, ffmpeg1, videoFilter, videoscale, videoFilter2, enc_queue, ffmpeg2, enc, mux, net_queue, netSink);
 
 		//set the pipe
 		this.pipe=pipe;
