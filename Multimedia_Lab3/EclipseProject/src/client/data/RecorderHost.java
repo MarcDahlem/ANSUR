@@ -8,7 +8,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Scanner;
 
-import server.connectionManager.ConnectionMessages;
+import server.connectionManager.ConnectionEventType;
 
 public class RecorderHost {
 	private int port;
@@ -51,7 +51,7 @@ public class RecorderHost {
 			pw = new PrintWriter(out);
 			
 			//first try to get the socket. Like defined in the procol send also the own properties
-			pw.write(ConnectionMessages.CAM_CONNECT_GET_PORT.name()+"\n");
+			pw.write(ConnectionEventType.CAM_CONNECT_GET_PORT.name()+"\n");
 			pw.write(this.getRoom() + "\n");
 			pw.write(this.getCameraName() + "\n");
 			pw.flush();
@@ -71,7 +71,7 @@ public class RecorderHost {
 					}
 				}
 				
-				if (ConnectionMessages.valueOf(scanner.next()) != ConnectionMessages.SERVER_EXCEPTION) {
+				if (ConnectionEventType.valueOf(scanner.next()) != ConnectionEventType.SERVER_EXCEPTION) {
 					//unknown answer received
 					throw new IOException("Server didn't answer correct. Answer was '" + answer + "'.");
 				} else {

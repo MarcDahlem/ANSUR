@@ -74,14 +74,17 @@ public class ConnectionManager {
 
 			String line = scanner.nextLine();
 			
-			ConnectionMessages message = ConnectionMessages.valueOf(line);
+			ConnectionEventType message = ConnectionEventType.valueOf(line);
 			switch(message) {
 			case CAM_CONNECT_GET_PORT:
 				// camera wants to connect... send back the port for this connection (where the pipeline will be started on)
 				this.cam_connect_get_port(writer, scanner);
 				break;
+			case CLIENT_REGISTER:
+				// a client wants to register its google cloud id on the server
+				this.clientRegistration(writer, scanner);
 			default:
-					//unnknown message received
+					//unnknown message received. //TODO
 			}
 		} finally {
 			if (writer!= null) {
@@ -99,8 +102,30 @@ public class ConnectionManager {
 		}
 	}
 
+	private void clientRegistration(PrintWriter writer, Scanner scanner) throws IOException {
+		//create a connection event and set the gcm address
+		ConnectionEvent event = new ConnectionEvent(this, ConnectionEventType.CLIENT_REGISTER);
+		if (!scanner.hasNextLine()) {
+			throw new IOException("No google cloud message id followed to the registration command. Not conform to the specified protocol.");
+		}
+		
+		String gcm = scanner.nextLine();
+		event.setGCM(gcm);
+		this.notifyConnectionEvent(event);
+		
+		if (event.hasError()) {
+			//error appeard means gcm was already registered
+			writer.write(""+false+"\n");
+		} else {
+			// no error thrown while notifying. That means room
+			writer.write(""+true+"\n");
+		} 
+		writer.flush();
+	}
+
 	private void cam_connect_get_port(PrintWriter writer, Scanner scanner) throws IOException {
-		ConnectionEvent event = new ConnectionEvent(this, ConnectionEventType.CLIENT_START, this.portCount);
+		ConnectionEvent event = new ConnectionEvent(this, ConnectionEventType.CAM_CONNECT_GET_PORT);
+		event.setEventPort( this.portCount);
 		if (!scanner.hasNextLine()) {
 			throw new IOException("No room name given during the registration. Not conform to the specified protocol.");
 		}
@@ -118,7 +143,7 @@ public class ConnectionManager {
 		
 		if (event.hasError()) {
 			//error appeard means cameraname was already existent in this room
-			writer.write(ConnectionMessages.SERVER_EXCEPTION.name() + "\n");
+			writer.write(ConnectionEventType.SERVER_EXCEPTION.name() + "\n");
 		} else {
 			// no error thrown while notifying. That means room
 			writer.write(""+this.portCount++);

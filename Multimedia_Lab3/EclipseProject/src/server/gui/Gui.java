@@ -90,6 +90,8 @@ public class Gui {
 
 	private volatile String currentOverlayMessage;
 
+	private ArrayList<String> gcmList; //list with all connected google cloud message ids
+
 	/**
 	 * The constructur of the Gui initialises counters, listeners and the timer.
 	 * The GUI is not configured after the constructor finishes.
@@ -99,6 +101,9 @@ public class Gui {
 	public Gui() {
 		//create the list containing all recorders for the connect streams
 		this.pipeList = new ArrayList<MotionRecorder>();
+		
+		//create the list that contains all google cloud message ids from the connected clients
+		this.gcmList = new ArrayList<String>();
 
 		//initialize the default overlay text
 		this.currentOverlayMessage="";
@@ -276,9 +281,9 @@ public class Gui {
 			@Override
 			public void eventAppeared(ConnectionEvent event) {
 				final ConnectionEventType eventType = event.getEventType();
-				final int eventPort = event.getPort();
 				switch (eventType) {
-				case CLIENT_START:
+				case CAM_CONNECT_GET_PORT:
+					int eventPort = event.getPort();
 					String roomName = event.getRoomName();
 					String cameraName = event.getCameraName();
 					// Assert.isTrue(Gui.CapturingPath != null);
@@ -294,13 +299,22 @@ public class Gui {
 					recorder.run();
 					Gui.this.updateOverlay("Client connected on port " + eventPort);
 					break;
+				case CLIENT_REGISTER:
+					String gcm = event.getGCM();
+					//client tries to register. Add it to the gcm list if not in
+					if (Gui.this.gcmList.contains(gcm)) {
+						event.errorAppeared();
+					} else {
+						Gui.this.gcmList.add(gcm);
+					}
+					break;
 				default:
 					Gui.this.display.asyncExec(new Runnable() {
 
 						@Override
 						public void run() {
 							MessageBox msgBox = new MessageBox(Gui.this.display.getShells()[0], SWT.OK| SWT.ICON_INFORMATION);
-							msgBox.setMessage("Unknown event appeared: '"+eventType.name() + "' on port " +eventPort);
+							msgBox.setMessage("Unknown event appeared: '"+eventType.name() + "'.");
 							msgBox.setText("Information");
 							msgBox.open();
 						}

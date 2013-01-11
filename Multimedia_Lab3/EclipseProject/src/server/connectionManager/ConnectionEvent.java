@@ -18,12 +18,17 @@ public class ConnectionEvent extends EventObject {
 
 	private boolean errorAppeared;
 
-	public ConnectionEvent(Object source, ConnectionEventType eventType, int eventPort) {
+	private String gcm;
+
+	public ConnectionEvent(Object source, ConnectionEventType eventType) {
 		super(source);
 		//set the message and event type
-		this.port = eventPort;
 		this.eventType = eventType;
 		this.errorAppeared=false;
+	}
+	
+	void setEventPort(int eventPort) {
+		this.port = eventPort;
 	}
 
 	/**
@@ -63,6 +68,14 @@ public class ConnectionEvent extends EventObject {
 	// returns if one of the listeners set the error flag.
 	public boolean hasError() {
 		return this.errorAppeared;
+	}
+
+	void setGCM(String gcm) {
+		this.gcm=gcm;
+	}
+	
+	public String getGCM(){
+		return this.gcm;
 	}
 
 
