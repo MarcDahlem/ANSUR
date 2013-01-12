@@ -6,22 +6,26 @@
 
     <uses-sdk
         android:minSdkVersion="8"
-        android:targetSdkVersion="8" />
+        android:targetSdkVersion="17" />
 
-    <permission
-        android:name="com.example.streamwithvlc.permission.C2D_MESSAGE"
-        android:protectionLevel="signature" />
+    <!--
+        <permission
+        android:name="com.example.streamwithvlc.permission.C2D_MESSAGE" 
+	    android:protectionLevel="signature" />
+    -->
 
-    <uses-permission android:name="com.example.streamwithvlc.permission.C2D_MESSAGE" />
+
+    <!-- <uses-permission android:name="com.example.streamwithvlc.permission.C2D_MESSAGE" /> -->
+
 
     <!-- App receives GCM messages. -->
-    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+    <!-- <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" /> -->
     <!-- GCM connects to Google Services. -->
-    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- <uses-permission android:name="android.permission.INTERNET" /> -->
     <!-- GCM requires a Google account. -->
-    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <!-- <uses-permission android:name="android.permission.GET_ACCOUNTS" /> -->
     <!-- Keeps the processor from sleeping when a message is received. -->
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- <uses-permission android:name="android.permission.WAKE_LOCK" /> -->
 
     <application
         android:allowBackup="true"
@@ -39,7 +43,7 @@
             </intent-filter>
         </receiver>
 
-        <service android:name=".GCMIntentService" />
+        <service android:name="com.example.streamwithvlc.GCMIntentService" />
 
         <activity
             android:name="com.example.streamwithvlc.MainActivity"
@@ -49,6 +53,10 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name="com.example.streamwithvlc.ListCamerasActivity"
+            android:label="@string/title_activity_list_cameras" >
         </activity>
     </application>
 

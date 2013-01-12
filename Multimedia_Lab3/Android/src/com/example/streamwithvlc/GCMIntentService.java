@@ -3,11 +3,11 @@ package com.example.streamwithvlc;
 import android.content.Context;
 import android.content.Intent;
 
-import com.google.android.gcm.GCMBaseIntentService;
+//import com.google.android.gcm.GCMBaseIntentService;
 
-public class GCMIntentService extends GCMBaseIntentService {
+public class GCMIntentService/* extends GCMBaseIntentService*/ {
 
-	public GCMIntentService(String... senderIDs){
+	/*public GCMIntentService(String... senderIDs){
 		super(senderIDs);
 	}
 
@@ -37,13 +37,13 @@ public class GCMIntentService extends GCMBaseIntentService {
 	}
 	
 	@Override
-	protected boolean onRecoverableError(Context context, String errorId) {
+	protected boolean onRecoverableError(Context context, String errorId) {*/
 		/** Called when the device tries to register or unregister, but the GCM servers are unavailable.
 		 * The GCM library will retry the operation using exponential backup, unless this method is 
 		 * overridden and returns false.
 		 * This method is optional and should be overridden only if you want to display the message to
 		 * the user or cancel the retry attempts.
 		 */
-		return super.onRecoverableError(context, errorId);
-	}
+		/*return super.onRecoverableError(context, errorId);
+	}*/
 }

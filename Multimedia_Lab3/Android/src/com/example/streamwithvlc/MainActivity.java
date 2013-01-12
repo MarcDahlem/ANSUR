@@ -12,7 +12,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 
-import com.google.android.gcm.GCMRegistrar;
+//import com.google.android.gcm.GCMRegistrar;
 
 public class MainActivity extends Activity {
 
@@ -21,14 +21,14 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		GCMRegistrar.checkDevice(this);
+		/*GCMRegistrar.checkDevice(this);
 		GCMRegistrar.checkManifest(this);
 		final String regId = GCMRegistrar.getRegistrationId(this);
 		if (regId.equals("")) {
 		  GCMRegistrar.register(this, SENDER_ID);
 		} else {
 		  Log.v("GCM", "Already registered");
-		}
+		}*/
 		setContentView(R.layout.activity_main);
 	}
 
@@ -45,12 +45,9 @@ public class MainActivity extends Activity {
     	
     	//Move the user to "new movie" page
     	case R.id.startButton:
-    		launchApplication();
+    		//launchApplication();
+    		startActivity(new Intent(view.getContext(), ListCamerasActivity.class));
     		break;
-    		
-    	case R.id.stopButton:
-    		break;
-    	
     	}
 	}
 	
