@@ -45,8 +45,9 @@ import org.eclipse.swt.widgets.Shell;
 import org.gstreamer.GstObject;
 import org.gstreamer.swt.VideoComponent;
 
+import commonUtility.ConnectionEventType;
+
 import server.connectionManager.ConnectionEvent;
-import server.connectionManager.ConnectionEventType;
 import server.connectionManager.ConnectionListener;
 import server.connectionManager.ConnectionManager;
 import server.motionRecorder.MotionRecorder;

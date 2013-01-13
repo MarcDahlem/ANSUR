@@ -8,7 +8,8 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Scanner;
 
-import server.connectionManager.ConnectionEventType;
+import commonUtility.ConnectionEventType;
+
 
 public class RecorderHost {
 	private int port;

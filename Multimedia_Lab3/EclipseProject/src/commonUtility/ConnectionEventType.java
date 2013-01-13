@@ -1,4 +1,4 @@
-package server.connectionManager;
+package commonUtility;
 
 public enum ConnectionEventType {
 	/** Camera connection

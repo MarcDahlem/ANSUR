@@ -12,6 +12,8 @@ import java.util.Scanner;
 
 import javax.swing.event.EventListenerList;
 
+import commonUtility.ConnectionEventType;
+
 import server.motionRecorder.MotionRecorder;
 
 public class ConnectionManager {

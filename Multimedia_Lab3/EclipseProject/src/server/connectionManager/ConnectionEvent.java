@@ -3,6 +3,8 @@ package server.connectionManager;
 import java.util.ArrayList;
 import java.util.EventObject;
 
+import commonUtility.ConnectionEventType;
+
 import server.motionRecorder.MotionRecorder;
 
 public class ConnectionEvent extends EventObject {
