@@ -4,8 +4,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.google.android.gcm.GCMRegistrar;
+
 import android.app.Activity;
 import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -32,6 +35,7 @@ public class ListCamerasActivity extends Activity {
 	RoomListviewAdapter aa = null;
 	ListView camerasListView;
 	private Collection<Room> rooms;
+	private AsyncTask<Void, Void, Void> getAllRoomsTask;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -44,20 +48,45 @@ public class ListCamerasActivity extends Activity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.activity_list_cameras, menu);
+		getMenuInflater().inflate(R.menu.activity_main, menu);
 		return true;
 	}
 
 	public void setListView(){
+		getAllRoomsTask = new AsyncTask<Void, Void, Void>() {
+
+			@Override
+			protected Void doInBackground(Void... params) {
+				// At this point all attempts to register with the app
+				// server failed, so we need to unregister the device
+				// from GCM - the app will try to register again when
+				// it is restarted. Note that GCM will send an
+				// unregistered callback upon completion, but
+				// GCMIntentService.onUnregistered() will ignore it.
+				try {
+					// set resID to be a specefic layout
+					int resID = R.layout.camera_info;
+					// Combine the list to the layout
+					rooms = ConnectionManager.getAllCameras(getApplicationContext());
+					aa = new RoomListviewAdapter(getApplicationContext(), resID, rooms);
+					// Gets the listview
+					camerasListView = (ListView) findViewById(R.id.camerasListView);
+					// Sets the adapter into the view
+					camerasListView.setAdapter(aa);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+
+				return null;
+			}
+			@Override
+			protected void onPostExecute(Void result) {
+				getAllRoomsTask = null;
+			}
+
+		};
+		getAllRoomsTask.execute(null, null, null);
 		
-		// set resID to be a specefic layout
-		int resID = R.layout.camera_info;
-		// Combine the list to the layout
-		aa = new RoomListviewAdapter(this, resID, rooms);		
-		// Gets the listview
-		camerasListView = (ListView) findViewById(R.id.camerasListView);
-		// Sets the adapter into the view
-		camerasListView.setAdapter(aa);
 
 	}
 	
@@ -67,7 +96,7 @@ public class ListCamerasActivity extends Activity {
 		Toast toast;
 		switch (view.getId()) {
 		case R.id.subscribe_button:
-			checkIfSubscribed();
+			//checkIfSubscribed();
 			break;
 
 		case R.id.refresh_button:

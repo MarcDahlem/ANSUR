@@ -15,12 +15,12 @@ import classes.Camera;
 import classes.Room;
 
 public class RoomListviewAdapter extends ArrayAdapter<Room>{
-	private ArrayList<Room> cameraList;
+	private ArrayList<Room> roomList;
 
 	public RoomListviewAdapter(Context context, int textViewResourceId, Collection<Room> rooms) {
 		super(context, textViewResourceId, rooms.toArray(new Room[0]));
-		this.cameraList = new ArrayList<Room>();
-		this.cameraList.addAll(rooms);
+		this.roomList = new ArrayList<Room>();
+		this.roomList.addAll(rooms);
 	}
 
 	private class ViewHolder {
@@ -59,12 +59,14 @@ public class RoomListviewAdapter extends ArrayAdapter<Room>{
 			holder = (ViewHolder) convertView.getTag();
 		}
 
-		Room room = cameraList.get(position);
-		/*holder.port.setText(" (" + camera.getPort() + ")");
-		holder.name.setText(camera.getRoom() + " - " + camera.getName());
-		holder.name.setChecked(camera.isSelected());
-		holder.name.setTag(camera);
-*/
+		Room room = roomList.get(position);
+		
+		for(Camera c : room.getCameras()){
+			holder.port.setText(" (" + c.getPort() + ")");
+			holder.name.setText(room.getRoomname() + " - " + c.getName());
+			holder.name.setChecked(c.isSelected());
+			holder.name.setTag(c);
+		}	
 		return convertView;
 
 	}

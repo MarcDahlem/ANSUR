@@ -196,6 +196,8 @@ public class ConnectionManager {
 				}
 
 				int port = scanner.nextInt();
+				//skip the linebreak
+				scanner.nextLine();
 				if (!scanner.hasNextLine()) {
 					String message = "No room name for camera " + (i+1) +"/" + amount + " on port " + port +".";
 					Toast.makeText(context, message, Toast.LENGTH_SHORT).show();

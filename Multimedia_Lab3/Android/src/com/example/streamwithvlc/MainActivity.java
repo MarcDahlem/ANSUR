@@ -13,6 +13,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.Toast;
@@ -22,8 +23,8 @@ import com.google.android.gcm.GCMRegistrar;
 public class MainActivity extends Activity {
 
 	public static final String SENDER_ID = "862106151827";
-	public static final String HOSTNAME = "130.240.93.97";
-	public static final int PORT = 5000;
+	public static String HOSTNAME = "130.240.93.97";
+	public static int PORT = 5000;
 	private AsyncTask<Void, Void, Void> registerTask;
 
 	@Override
@@ -101,6 +102,21 @@ public class MainActivity extends Activity {
 		return true;
 	}
 
+	/**
+     * Choices for the menu
+     */
+    @Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// Handle item selection
+		switch (item.getItemId()) {
+		case R.id.settings:
+			startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
+		}
+	}
+	
 	public void onClick(View view) {
 		switch(view.getId()) {
 
