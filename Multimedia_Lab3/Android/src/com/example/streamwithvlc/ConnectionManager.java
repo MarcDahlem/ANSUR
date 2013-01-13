@@ -148,6 +148,7 @@ public class ConnectionManager {
 		PrintWriter pw = null;
 		Scanner scanner = null;
 		Socket socket = null;
+		Log.i("ANSUR", "Trying to get all cameras");
 		try {
 			//creates a socket
 			socket = new Socket(MainActivity.HOSTNAME, MainActivity.PORT);
@@ -224,6 +225,8 @@ public class ConnectionManager {
 				room.addCamera(cam);
 			}
 			
+
+			Log.i("ANSUR", "All cameras sucessfully received");
 			// at the end return all collected rooms
 			return rooms.values();
 		} finally {
