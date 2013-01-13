@@ -28,12 +28,12 @@ public class ConnectionManager {
 
 	public static boolean register(final Context context, String registrationId) {
 		Log.i("ANSURGCM", "Registering device (regId = " + registrationId + ")");
-		
+
 		Toast.makeText(context, "Registering device (regId = " + registrationId + ")",
 				Toast.LENGTH_SHORT).show();
-		
+
 		ConnectionEventType type = ConnectionEventType.CLIENT_REGISTER;
-		
+
 		boolean success = postBooleanServerCommand(context, registrationId, type);
 		if (success) {
 			GCMRegistrar.setRegisteredOnServer(context, true);
@@ -90,7 +90,7 @@ public class ConnectionManager {
 								throw new IOException("Server answered with an exception.");
 							}
 							throw new IOException("Server answered with an unknown answer '"+line+"'.");
-							
+
 						}
 					}
 				} finally {
@@ -137,13 +137,14 @@ public class ConnectionManager {
 
 		ConnectionEventType type = ConnectionEventType.CLIENT_DEREGISTER;
 
+		//TODO unsubscribe from all subscibed cameras
 		boolean success = postBooleanServerCommand(context, registrationId, type);
 		if (success) {
 			GCMRegistrar.setRegisteredOnServer(context, false);
 		}
 		return success;
 	}
-	
+
 	public static Collection<Room> getAllCameras(Context context) throws IOException {
 		PrintWriter pw = null;
 		Scanner scanner = null;
@@ -180,27 +181,27 @@ public class ConnectionManager {
 			Map<String, Room> rooms = new TreeMap<String, Room>();
 			for (int i = 0; i<amount; i++) {
 				//first read the port, 2nd rommname, 3rd cameraname
-				
+
 				if (!scanner.hasNextLine()) {
 					String message = "No camera port for camera " + (i+1) +"/" + amount + ".";
 					Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
 					throw new IOException(message);
 				}
-				
+
 				if (!scanner.hasNextInt()) {
 					String line = scanner.nextLine();
 					String message = "Server did not answer correctly! Expected port of camera, got '"+ line + "'.";
 					Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
 					throw new IOException(message);
 				}
-				
+
 				int port = scanner.nextInt();
 				if (!scanner.hasNextLine()) {
 					String message = "No room name for camera " + (i+1) +"/" + amount + " on port " + port +".";
 					Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
 					throw new IOException(message);
 				}
-				
+
 				String roomName = scanner.nextLine();
 
 				if (!scanner.hasNextLine()) {
@@ -208,9 +209,9 @@ public class ConnectionManager {
 					Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
 					throw new IOException(message);
 				}
-				
+
 				String cameraName = scanner.nextLine();
-				
+
 				//get the room
 				Room room;
 				if (rooms.containsKey(roomName)) {
@@ -219,16 +220,140 @@ public class ConnectionManager {
 					room = new Room(roomName);
 					rooms.put(roomName, room);
 				}
-				
+
 				//add the camera to this room
 				Camera cam = new Camera(cameraName, port, false); //TODO check with the old cameras and set them selected if they were before
 				room.addCamera(cam);
 			}
-			
+
 
 			Log.i("ANSUR", "All cameras sucessfully received");
 			// at the end return all collected rooms
 			return rooms.values();
+		} finally {
+			//finally close all streams etc
+			if(pw!=null) {
+
+				pw.close();
+			}
+			if (scanner!=null) {
+				scanner.close();	
+			}
+			if (socket!=null){
+				socket.close();
+			}
+		}
+
+	}
+
+	public static void subscribeTo(Context context, Collection<Camera> cameras, String registrationId) throws IOException {
+		PrintWriter pw = null;
+		Scanner scanner = null;
+		Socket socket = null;
+		Log.i("ANSUR", "Trying to subscribe to " + cameras.size() + " cameras.");
+		try {
+			//creates a socket
+			socket = new Socket(MainActivity.HOSTNAME, MainActivity.PORT);
+			InputStream in = socket.getInputStream();
+			OutputStream out = socket.getOutputStream();
+			pw = new PrintWriter(out);
+
+			//Send the get subscribtion command like defined in the protocol
+			pw.write(ConnectionEventType.CLIENT_SUBSCRIBE.name()+"\n");
+			pw.write(cameras.size()+"\n");
+			pw.write(registrationId+"\n");
+			
+			for (Camera camera:cameras) {
+				pw.write(camera.getPort() + "\n");
+			}
+			pw.flush();
+
+			//then wait for the answer
+			scanner = new Scanner(in);
+			if (!scanner.hasNextLine()) {
+				Toast.makeText(context, "Server did not answer!", Toast.LENGTH_SHORT).show();
+				throw new IOException("Server did not answer!");
+			}
+
+			String answer = scanner.nextLine();
+
+			if (ConnectionEventType.SERVER_EXCEPTION.name().equals(answer)) {
+				String message = "Server answered with an exception. It can be that one client to subscribe to is not available.";
+				Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+				throw new IOException(message);
+			}
+
+			if ("done".equals(answer)) {
+				Log.i("ANSUR", "Subscribed to all " + cameras.size() + " cameras.");
+				// at the end return all collected rooms
+				return;
+			} else {
+				String message = "Serveranswer is unknown. '" + answer + "'.";
+				Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+				throw new IOException(message);
+			}
+		} finally {
+			//finally close all streams etc
+			if(pw!=null) {
+
+				pw.close();
+			}
+			if (scanner!=null) {
+				scanner.close();	
+			}
+			if (socket!=null){
+				socket.close();
+			}
+		}
+
+	}
+	
+	public static void unsubscribeFrom(Context context, Collection<Camera> cameras, String registrationId) throws IOException {
+		PrintWriter pw = null;
+		Scanner scanner = null;
+		Socket socket = null;
+		Log.i("ANSUR", "Trying to unsubscribe from " + cameras.size() + " cameras.");
+		try {
+			//create a socket
+			socket = new Socket(MainActivity.HOSTNAME, MainActivity.PORT);
+			InputStream in = socket.getInputStream();
+			OutputStream out = socket.getOutputStream();
+			pw = new PrintWriter(out);
+
+			//Send the get unsubscribtion command like defined in the protocol
+			pw.write(ConnectionEventType.CLIENT_UNSUBSCRIBE.name()+"\n");
+			pw.write(cameras.size()+"\n");
+			pw.write(registrationId+"\n");
+			
+			for (Camera camera:cameras) {
+				pw.write(camera.getPort() + "\n");
+			}
+			pw.flush();
+
+			//then wait for the answer
+			scanner = new Scanner(in);
+			if (!scanner.hasNextLine()) {
+				Toast.makeText(context, "Server did not answer!", Toast.LENGTH_SHORT).show();
+				throw new IOException("Server did not answer!");
+			}
+
+			String answer = scanner.nextLine();
+
+			if (ConnectionEventType.SERVER_EXCEPTION.name().equals(answer)) {
+				String message = "Server answered with an exception. It can be that one client to subscribe to is not available.";
+				Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+				throw new IOException(message);
+			}
+
+			if ("done".equals(answer)) {
+				Log.i("ANSUR", "Unsubscribed from all " + cameras.size() + " cameras.");
+				// at the end return all collected rooms
+				return;
+			} else {
+				String message = "Serveranswer is unknown. '" + answer + "'.";
+				Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+				throw new IOException(message);
+			}
 		} finally {
 			//finally close all streams etc
 			if(pw!=null) {

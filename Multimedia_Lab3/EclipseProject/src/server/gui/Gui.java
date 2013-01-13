@@ -353,6 +353,7 @@ public class Gui {
 					for (MotionRecorder rec:Gui.this.pipeList) {
 						event.addMotionRecorder(rec);
 					}
+					break;
 				}
 				default:
 					Gui.this.display.asyncExec(new Runnable() {
