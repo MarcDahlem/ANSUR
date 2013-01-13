@@ -7,7 +7,7 @@ public enum ConnectionEventType {
 	 * 	1: Room name
 	 *  2: Camera name
 	 *  
-	 *  returns port on which the new pipe is created
+	 *  returns int port on which the new pipe is created
 	 *  exception if camera already existing in this room //TODO (not implemented at the moment)
 	 */
 	CAM_CONNECT_GET_PORT,
