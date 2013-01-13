@@ -1,0 +1,15 @@
+1357941629318	Rename compilation unit 'camerasItemView.java'
+1357942389636	Delete element
+1357942413191	Delete element
+1357942924030	Rename field 'moviesList'
+1357942933657	Rename field 'moviesListView'
+1357943848368	Delete element
+1357943852218	Delete element
+1357943859270	Delete element
+1357943860735	Delete element
+1357945019612	Move compilation unit
+1357945324128	Delete element
+1357946167882	Delete element
+1357947091876	Rename local variable 'countryList'
+1357947119598	Rename field 'code'
+1358091827012	Extract method 'registerDevice'

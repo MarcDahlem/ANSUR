@@ -9,5 +9,7 @@
     <string name="title_activity_list_cameras">ListCamerasActivity</string>
     <string name="back_button">Back</string>
     <string name="refresh_button">Refresh</string>
+    <string name="connectButton">Register device on Server</string>
+    <string name="dConnectButton">Unreister device on server</string>
 
 </resources>

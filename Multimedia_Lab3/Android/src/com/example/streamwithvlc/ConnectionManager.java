@@ -10,6 +10,7 @@ import java.util.Scanner;
 
 import android.content.Context;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gcm.GCMRegistrar;
 import commonUtility.ConnectionEventType;
@@ -22,8 +23,12 @@ public class ConnectionManager {
 
 	public static boolean register(final Context context, String registrationId) {
 		Log.i("ANSURGCM", "Registering device (regId = " + registrationId + ")");
+		
+		Toast.makeText(context, "Registering device (regId = " + registrationId + ")",
+				Toast.LENGTH_SHORT).show();
+		
 		ConnectionEventType type = ConnectionEventType.CLIENT_REGISTER;
-
+		
 		boolean success = postBooleanServerCommand(context, registrationId, type);
 		if (success) {
 			GCMRegistrar.setRegisteredOnServer(context, true);
@@ -55,6 +60,8 @@ public class ConnectionManager {
 					//then wait for an answer and check if it is true or false
 					scanner = new Scanner(in);
 					if (!scanner.hasNextLine()) {
+						Toast.makeText(context, "Server did not answer!",
+								Toast.LENGTH_SHORT).show();
 						throw new IOException("Server did not answer!");
 					}
 
@@ -62,17 +69,23 @@ public class ConnectionManager {
 
 					//everything is fine. Read the answer
 					if ("true".equals(line)) {
+						Toast.makeText(context, "Device successfully (un)registered on server (regId = " + registrationId + ")",
+								Toast.LENGTH_SHORT).show();
 						Log.i("ANSURGCM", "Device successfully (un)registered on server (regId = " + registrationId + ")");
 						return true;
 					} else {
 						if ("false".equals(line)) {
-							//TODO message that it is already registered
+							Toast.makeText(context, "Device is allready registerd on server",
+									Toast.LENGTH_SHORT).show();
 							return true;
 						} else {
 							if (ConnectionEventType.SERVER_EXCEPTION.name().equals(line)) {
+								Toast.makeText(context, "Server answered with an exception.",
+										Toast.LENGTH_SHORT).show();
 								throw new IOException("Server answered with an exception.");
 							}
 							throw new IOException("Server answered with an unknown answer '"+line+"'.");
+							
 						}
 					}
 				} finally {
@@ -114,6 +127,8 @@ public class ConnectionManager {
 
 	public static boolean unregister(Context context, String registrationId) {
 		Log.i("ANSURGCM", "unregistering device (regId = " + registrationId + ")");
+		Toast.makeText(context, "unregistering device (regId = " + registrationId + ")",
+				Toast.LENGTH_SHORT).show();
 
 		ConnectionEventType type = ConnectionEventType.CLIENT_DEREGISTER;
 

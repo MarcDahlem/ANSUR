@@ -70,9 +70,8 @@ public class ListCamerasActivity extends Activity {
 			break;
 
 		case R.id.refresh_button:
-			toast = Toast.makeText(getApplicationContext(), "Refreshing list",
-					Toast.LENGTH_SHORT);
-			toast.show();
+			Toast.makeText(getApplicationContext(), "Refreshing list",
+					Toast.LENGTH_SHORT).show();
 			break;
 
 		case R.id.cameras_back_button:

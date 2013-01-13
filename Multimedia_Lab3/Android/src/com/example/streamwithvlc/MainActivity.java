@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
+import android.widget.Toast;
 
 import com.google.android.gcm.GCMRegistrar;
 
@@ -26,11 +27,13 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_main);
 		GCMRegistrar.checkDevice(this);
 		GCMRegistrar.checkManifest(this);
-		setContentView(R.layout.activity_main);
+	}
 
 
+	public void registerDevice() {
 		final String regId = GCMRegistrar.getRegistrationId(this);
 		if (regId.equals("")) {
 			//not registered yet. Automatically register on startup
@@ -38,9 +41,12 @@ public class MainActivity extends Activity {
 		} else {
 			// Device is already registered on GCM, check server.
 			Log.v("GCM", "Device Already registered on GCM, try to register on the server.");
+			Toast.makeText(getApplicationContext(), "Device Already registered on GCM, try to register on the server.",
+					Toast.LENGTH_SHORT).show();
 			if (GCMRegistrar.isRegisteredOnServer(this)) {
 				// Skips registration.
-				//TODO inform
+				Toast.makeText(getApplicationContext(), "Device is registerd on server",
+						Toast.LENGTH_SHORT).show();
 			} else {
 				// Try to register again, but not in the UI thread.
 				// It's also necessary to cancel the thread onDestroy(),
@@ -60,6 +66,7 @@ public class MainActivity extends Activity {
 						if (!registered) {
 							GCMRegistrar.unregister(context);
 						}
+							
 						return null;
 					}
 
@@ -75,6 +82,7 @@ public class MainActivity extends Activity {
 		}
 	}
 
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
@@ -90,6 +98,13 @@ public class MainActivity extends Activity {
 		case R.id.startButton:
 			//launchApplication();
 			startActivity(new Intent(view.getContext(), ListCamerasActivity.class));
+			break;
+		
+		case R.id.connectButton:
+			registerDevice();
+			break;
+			
+		case R.id.dConnectButton:
 			break;
 		}
 	}
