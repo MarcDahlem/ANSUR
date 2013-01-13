@@ -1,6 +1,8 @@
 package com.example.streamwithvlc;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 
 import android.app.Activity;
 import android.content.Context;
@@ -16,6 +18,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import classes.Camera;
+import classes.Room;
 
 /**
  * http://www.mysamplecode.com/2012/07/android-listview-checkbox-example.html
@@ -26,8 +29,9 @@ import classes.Camera;
 public class ListCamerasActivity extends Activity {
 
 	
-	MyCustomAdapter aa = null;
+	RoomListviewAdapter aa = null;
 	ListView camerasListView;
+	private Collection<Room> rooms;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -45,14 +49,11 @@ public class ListCamerasActivity extends Activity {
 	}
 
 	public void setListView(){
-		ArrayList<Camera> camerasList = new ArrayList<Camera>();
-		camerasList.add(new Camera("Cam1", "Kitchen", 1000, false));
-		camerasList.add(new Camera("Cam2", "Bedroom", 2000, false));
 		
 		// set resID to be a specefic layout
 		int resID = R.layout.camera_info;
 		// Combine the list to the layout
-		aa = new MyCustomAdapter(this, resID, camerasList);		
+		aa = new RoomListviewAdapter(this, resID, rooms);		
 		// Gets the listview
 		camerasListView = (ListView) findViewById(R.id.camerasListView);
 		// Sets the adapter into the view
@@ -72,6 +73,12 @@ public class ListCamerasActivity extends Activity {
 		case R.id.refresh_button:
 			Toast.makeText(getApplicationContext(), "Refreshing list",
 					Toast.LENGTH_SHORT).show();
+			try {
+				this.rooms = ConnectionManager.getAllCameras(this);
+			} catch (IOException e) {
+				Toast.makeText(this, "get all cameras failed", Toast.LENGTH_SHORT).show();
+				Log.e("ANSUR", "get all cameras had an error:", e);
+			}
 			break;
 
 		case R.id.cameras_back_button:
@@ -79,70 +86,12 @@ public class ListCamerasActivity extends Activity {
 			break;
 		}
 	}
-
-	private class MyCustomAdapter extends ArrayAdapter<Camera> {
-		private ArrayList<Camera> cameraList;
-
-		public MyCustomAdapter(Context context, int textViewResourceId,
-				ArrayList<Camera> cameraList) {
-			super(context, textViewResourceId, cameraList);
-			this.cameraList = new ArrayList<Camera>();
-			this.cameraList.addAll(cameraList);
-		}
-
-		private class ViewHolder {
-			TextView port;
-			CheckBox name;
-		}
-
-		@Override
-		public View getView(int position, View convertView, ViewGroup parent) {
-
-			ViewHolder holder = null;
-			Log.v("ConvertView", String.valueOf(position));
-
-			if (convertView == null) {
-				LayoutInflater vi = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-				convertView = vi.inflate(R.layout.camera_info, null);
-
-				holder = new ViewHolder();
-				holder.port = (TextView) convertView.findViewById(R.id.port);
-				holder.name = (CheckBox) convertView.findViewById(R.id.checkBox);
-				convertView.setTag(holder);
-
-				holder.name.setOnClickListener(new View.OnClickListener() {
-					public void onClick(View v) {
-						CheckBox cb = (CheckBox) v;
-						Camera camera = (Camera) cb.getTag();
-						/*Toast.makeText(
-								getApplicationContext(),
-								"Clicked on Checkbox: " + cb.getText() + " is "
-										+ cb.isChecked(), Toast.LENGTH_LONG)
-								.show();*/
-						camera.setSelected(cb.isChecked());
-					}
-				});
-			} else {
-				holder = (ViewHolder) convertView.getTag();
-			}
-
-			Camera camera = cameraList.get(position);
-			holder.port.setText(" (" + camera.getPort() + ")");
-			holder.name.setText(camera.getRoom() + " - " + camera.getName());
-			holder.name.setChecked(camera.isSelected());
-			holder.name.setTag(camera);
-
-			return convertView;
-
-		}
-
-	}
 	
 	public void checkIfSubscribed() {
 		StringBuffer responseText = new StringBuffer();
 		responseText.append("The following were selected...");
 
-		ArrayList<Camera> cameraList = aa.cameraList;
+		ArrayList<Camera> cameraList = null; //aa.getAllCameras();
 		for (int i = 0; i < cameraList.size(); i++) {
 			Camera camera = cameraList.get(i);
 			if (camera.isSelected()) {

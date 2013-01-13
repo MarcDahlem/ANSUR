@@ -12,7 +12,7 @@
         android:layout_alignParentLeft="true"
         android:focusable="false"
         android:focusableInTouchMode="false" 
-        android:textColor="#008000" />
+        android:textColor="#000000" />
     
     <TextView
         android:id="@+id/port"
@@ -21,6 +21,6 @@
         android:layout_alignBaseline="@+id/checkBox"
         android:layout_alignBottom="@+id/checkBox"
         android:layout_toRightOf="@+id/checkBox"
-        android:textColor="#008000" />
+        android:textColor="#FFFFFF" />
  
 </RelativeLayout>

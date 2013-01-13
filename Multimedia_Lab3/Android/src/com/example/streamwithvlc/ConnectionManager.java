@@ -5,12 +5,17 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Collection;
+import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.TreeMap;
 
 import android.content.Context;
 import android.util.Log;
 import android.widget.Toast;
+import classes.Camera;
+import classes.Room;
 
 import com.google.android.gcm.GCMRegistrar;
 import commonUtility.ConnectionEventType;
@@ -137,6 +142,104 @@ public class ConnectionManager {
 			GCMRegistrar.setRegisteredOnServer(context, false);
 		}
 		return success;
+	}
+	
+	public static Collection<Room> getAllCameras(Context context) throws IOException {
+		PrintWriter pw = null;
+		Scanner scanner = null;
+		Socket socket = null;
+		try {
+			//creates a socket
+			socket = new Socket(MainActivity.HOSTNAME, MainActivity.PORT);
+			InputStream in = socket.getInputStream();
+			OutputStream out = socket.getOutputStream();
+			pw = new PrintWriter(out);
+
+			//Send the get cams command like defined in the protocol
+			pw.write(ConnectionEventType.CLIENT_GET_CAMS.name()+"\n");
+			pw.flush();
+
+			//then wait for the answer and restructure it
+			scanner = new Scanner(in);
+			if (!scanner.hasNextLine()) {
+				Toast.makeText(context, "Server did not answer!", Toast.LENGTH_SHORT).show();
+				throw new IOException("Server did not answer!");
+			}
+
+			if (!scanner.hasNextInt()) {
+				String line = scanner.nextLine();
+				String message = "Server did not answer correctly! Expected number of cameras, got '"+ line + "'.";
+				Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+				throw new IOException(message);
+			}
+			int amount = scanner.nextInt();
+			//skip the linebreak
+			scanner.nextLine();
+
+			Map<String, Room> rooms = new TreeMap<String, Room>();
+			for (int i = 0; i<amount; i++) {
+				//first read the port, 2nd rommname, 3rd cameraname
+				
+				if (!scanner.hasNextLine()) {
+					String message = "No camera port for camera " + (i+1) +"/" + amount + ".";
+					Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+					throw new IOException(message);
+				}
+				
+				if (!scanner.hasNextInt()) {
+					String line = scanner.nextLine();
+					String message = "Server did not answer correctly! Expected port of camera, got '"+ line + "'.";
+					Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+					throw new IOException(message);
+				}
+				
+				int port = scanner.nextInt();
+				if (!scanner.hasNextLine()) {
+					String message = "No room name for camera " + (i+1) +"/" + amount + " on port " + port +".";
+					Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+					throw new IOException(message);
+				}
+				
+				String roomName = scanner.nextLine();
+
+				if (!scanner.hasNextLine()) {
+					String message = "No camera name for camera " + (i+1) +"/" + amount + " on port " + port +" in room "+ roomName+".";
+					Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+					throw new IOException(message);
+				}
+				
+				String cameraName = scanner.nextLine();
+				
+				//get the room
+				Room room;
+				if (rooms.containsKey(roomName)) {
+					room = rooms.get(roomName);
+				} else {
+					room = new Room(roomName);
+					rooms.put(roomName, room);
+				}
+				
+				//add the camera to this room
+				Camera cam = new Camera(cameraName, port, false); //TODO check with the old cameras and set them selected if they were before
+				room.addCamera(cam);
+			}
+			
+			// at the end return all collected rooms
+			return rooms.values();
+		} finally {
+			//finally close all streams etc
+			if(pw!=null) {
+
+				pw.close();
+			}
+			if (scanner!=null) {
+				scanner.close();	
+			}
+			if (socket!=null){
+				socket.close();
+			}
+		}
+
 	}
 
 }

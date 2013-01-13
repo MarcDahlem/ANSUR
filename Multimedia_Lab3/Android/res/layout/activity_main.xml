@@ -2,7 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#000000"
+    android:background="@drawable/bg"
     tools:context=".MainActivity" >
 
     <LinearLayout
@@ -18,7 +18,7 @@
             android:layout_height="wrap_content"
             android:onClick="onClick"
             android:text="@string/connectButton"
-            android:textColor="#008000" />
+            android:textColor="#008080" />
 
         <Button
             android:id="@+id/startButton"
@@ -26,7 +26,7 @@
             android:layout_height="wrap_content"
             android:onClick="onClick"
             android:text="@string/cameraListButton"
-            android:textColor="#008000" />
+            android:textColor="#008080" />
         
          <Button
             android:id="@+id/dConnectButton"
@@ -34,7 +34,7 @@
             android:layout_height="wrap_content"
             android:onClick="onClick"
             android:text="@string/dConnectButton"
-            android:textColor="#008000" />
+            android:textColor="#008080" />
     </LinearLayout>
 
 </RelativeLayout>

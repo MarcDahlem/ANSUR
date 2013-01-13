@@ -8,11 +8,13 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.graphics.PixelFormat;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
+import android.view.Window;
 import android.widget.Toast;
 
 import com.google.android.gcm.GCMRegistrar;
@@ -30,6 +32,14 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 		GCMRegistrar.checkDevice(this);
 		GCMRegistrar.checkManifest(this);
+	}
+
+	@Override
+	public void onAttachedToWindow() {
+		//fix the background
+		super.onAttachedToWindow();
+		Window window = getWindow();
+		window.setFormat(PixelFormat.RGBA_8888);
 	}
 
 
@@ -66,7 +76,7 @@ public class MainActivity extends Activity {
 						if (!registered) {
 							GCMRegistrar.unregister(context);
 						}
-							
+
 						return null;
 					}
 
@@ -82,7 +92,7 @@ public class MainActivity extends Activity {
 		}
 	}
 
-	
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
@@ -99,11 +109,11 @@ public class MainActivity extends Activity {
 			//launchApplication();
 			startActivity(new Intent(view.getContext(), ListCamerasActivity.class));
 			break;
-		
+
 		case R.id.connectButton:
 			registerDevice();
 			break;
-			
+
 		case R.id.dConnectButton:
 			break;
 		}

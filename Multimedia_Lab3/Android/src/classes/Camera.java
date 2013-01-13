@@ -2,13 +2,12 @@ package classes;
 
 public class Camera {
 
-	String name = "", room = "";
+	String name;
 	int port;
 	boolean isSelected = false;
 	
-	public Camera(String name, String room, int port, boolean isSelected){
+	public Camera(String name, int port, boolean isSelected){
 		this.name = name;
-		this.room = room;
 		this.port = port;
 		this.isSelected = isSelected;
 	}
@@ -17,29 +16,11 @@ public class Camera {
 		return name;
 	}
 
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getRoom() {
-		return room;
-	}
-
-	public void setRoom(String room) {
-		this.room = room;
-	}
-
 	public int getPort() {
 		return port;
 	}
-
-	public void setPort(int port) {
-		this.port = port;
-	}
 	
-	
-	
-	public boolean isSelected() {
+		public boolean isSelected() {
 		return isSelected;
 	}
 
@@ -48,7 +29,7 @@ public class Camera {
 	}
 
 	public String toString(){
-		return new String("Camera: " + name + "\n" + "Room: " + room + "\n" + "Port: " + port);
+		return new String("Camera: " + name + " Port: " + port);
 	}
 	
 }
