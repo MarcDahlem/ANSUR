@@ -16,7 +16,7 @@ import com.google.android.gcm.GCMRegistrar;
 
 public class MainActivity extends Activity {
 
-	private static final String SENDER_ID = "862106151827";
+	public static final String SENDER_ID = "862106151827";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -45,12 +45,9 @@ public class MainActivity extends Activity {
     	
     	//Move the user to "new movie" page
     	case R.id.startButton:
-    		launchApplication();
+    		//launchApplication();
+    		startActivity(new Intent(view.getContext(), ListCamerasActivity.class));
     		break;
-    		
-    	case R.id.stopButton:
-    		break;
-    	
     	}
 	}
 	
