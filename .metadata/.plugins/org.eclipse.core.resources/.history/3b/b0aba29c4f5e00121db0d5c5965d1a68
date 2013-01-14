@@ -29,7 +29,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 		switch(GcmMessages.GCMCOMMAND.valueOf(msg)){
 		case MOTION_START:
 			content = extras.getString("FILE_PATH");
-			createNotification("MOTION DETECTED","A motion is detected", "There has been detected a motion on camera 1", content.hashCode());
+			createNotification("A motion is detected", "There has been detected a motion on camera 1", content.hashCode());
 			break;
 			
 		case MOTION_END:
@@ -39,7 +39,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 			
 		case CAMERA_DOWN:
 			content = extras.getString("PORT");
-			createNotification("LOST CONNECTION","Lost camera", "Camera on port: " + content + " was disconnected", content.hashCode());
+			createNotification("LOST CONNECTIOn","Lost camera", "Camera on port: " + content + " was disconnected", content.hashCode());
 			break;
 			
 		case SERVER_SHUTDOWN:

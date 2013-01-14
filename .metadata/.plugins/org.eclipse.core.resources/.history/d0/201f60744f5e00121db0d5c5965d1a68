@@ -29,7 +29,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 		switch(GcmMessages.GCMCOMMAND.valueOf(msg)){
 		case MOTION_START:
 			content = extras.getString("FILE_PATH");
-			createNotification("MOTION DETECTED","A motion is detected", "There has been detected a motion on camera 1", content.hashCode());
+			createNotification("A motion is detected", "There has been detected a motion on camera 1", content.hashCode());
 			break;
 			
 		case MOTION_END:
@@ -39,24 +39,23 @@ public class GCMIntentService extends GCMBaseIntentService {
 			
 		case CAMERA_DOWN:
 			content = extras.getString("PORT");
-			createNotification("LOST CONNECTION","Lost camera", "Camera on port: " + content + " was disconnected", content.hashCode());
+			createNotification("Lost camera", "Camera on port: " + content + " was disconnected", content.hashCode());
 			break;
 			
 		case SERVER_SHUTDOWN:
-			createNotification("SERVER SHUTDOWN","Server down", "The server was shut down",1);
+			createNotification("Server down", "The server was shut down",1);
 			break;
 		}
 
 	}
 
 	
-	public void createNotification(String popupText, String title, String message, int notificationID) {
+	public void createNotification(String title, String message, int notificationID) {
 		NotificationCompat.Builder mBuilder =
 		        new NotificationCompat.Builder(this)
 		        .setSmallIcon(R.drawable.motion_detected)
 		        .setContentTitle(title)
-		        .setContentText(message)
-		        .setTicker(popupText);;
+		        .setContentText(message);
 		// Creates an explicit intent for an Activity in your app
 		Intent resultIntent = new Intent(this, MainActivity.class);
 		// The stack builder object will contain an artificial back stack for the
