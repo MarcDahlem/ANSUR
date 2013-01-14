@@ -27,6 +27,11 @@ import com.google.android.gcm.GCMRegistrar;
 
 public class ListCamerasActivity extends Activity {
 
+	public static final String CAMERA_DISC_ACTION = "com.example.ansur.CAMERA_DISC_ACTION";
+	public static final String CAM_DISC_ROOM = "CAM_DISC_ROOM";
+	public static final String CAM_DISC_CAM = "CAM_DISC_CAM";
+	public static final String CAM_DISC_PORT = "CAM_DISC_PORT";
+	
 	private AsyncTask<Void, Void, Void> refreshTask;
 	private AsyncTask<Void, Void, Void> subscribeTask;
 
@@ -36,7 +41,7 @@ public class ListCamerasActivity extends Activity {
 		setContentView(R.layout.activity_cameralist);
 
 		registerReceiver(mHandleMessageReceiver,new IntentFilter(MainActivity.TOAST_MESSAGE_ACTION));
-
+		registerReceiver(mHandleMessageReceiver2,new IntentFilter(ListCamerasActivity.CAMERA_DISC_ACTION));
 		// Get the ExpandableListView from the layout
 
 		ExpandableListView listView = getListView();
@@ -61,7 +66,7 @@ public class ListCamerasActivity extends Activity {
 
 
 	private void refreshList() {
-		final Context context = this;
+		final Context context = this.getApplicationContext();
 		refreshTask = new AsyncTask<Void, Void, Void>() {
 
 			@Override
@@ -105,7 +110,7 @@ public class ListCamerasActivity extends Activity {
 	private void updateListview(ExpandableListView listView,
 			Collection<Room> rooms) {
 		if (listView.getExpandableListAdapter() == null) {
-			RoomListviewAdapter adapter = new RoomListviewAdapter(this,rooms);
+			RoomListviewAdapter adapter = new RoomListviewAdapter(this.getApplicationContext(),rooms);
 			listView.setAdapter(adapter);
 		} else {
 			RoomListviewAdapter adapter = (RoomListviewAdapter)listView.getExpandableListAdapter();
@@ -136,7 +141,7 @@ public class ListCamerasActivity extends Activity {
 	}
 
 	private void updateSubscriptions() {
-		final Context context = this;
+		final Context context = this.getApplicationContext();
 		subscribeTask = new AsyncTask<Void, Void, Void>() {
 
 			@Override
@@ -225,6 +230,7 @@ public class ListCamerasActivity extends Activity {
 	@Override
 	protected void onDestroy() {
 		unregisterReceiver(mHandleMessageReceiver);
+		unregisterReceiver(mHandleMessageReceiver2);
 
 		if (refreshTask != null) {
 			refreshTask.cancel(true);
@@ -243,5 +249,22 @@ public class ListCamerasActivity extends Activity {
 			Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
 		}
 	};
+	private final BroadcastReceiver mHandleMessageReceiver2 = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			String cameraName = intent.getExtras().getString(ListCamerasActivity.CAM_DISC_CAM);
+			String roomName = intent.getExtras().getString(ListCamerasActivity.CAM_DISC_ROOM);
+			int cameraPort = Integer.parseInt(intent.getExtras().getString(ListCamerasActivity.CAM_DISC_PORT));
+			Toast.makeText(context, "Camera " + cameraName + " in room " + roomName + " on port " + cameraPort + "disconnected.", Toast.LENGTH_SHORT).show();
+			
+			ListCamerasActivity.this.removeCamera(cameraName, roomName, cameraPort);
+		}
+	};
 
+	protected void removeCamera(String cameraName, String roomName, int cameraPort) {
+		// camera disconnected
+		ExpandableListView listView = this.getListView();
+		RoomListviewAdapter adapter = (RoomListviewAdapter)listView.getExpandableListAdapter();
+		adapter.removeCamera(cameraName, roomName, cameraPort);
+	}
 }

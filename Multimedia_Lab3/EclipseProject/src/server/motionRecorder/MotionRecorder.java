@@ -44,7 +44,7 @@ import commonUtility.GcmMessages;
  */
 public class MotionRecorder {
 
-	public static final String FILEENDING = "ogg";
+	public static final String FILEENDING = "mp4";
 
 	/**
 	 * The pipeline containing the camerabin and is used to control the recorder
@@ -290,7 +290,9 @@ public class MotionRecorder {
 		Element ffmpeg = ElementFactory.make("ffmpegcolorspace", "ffmpeg color space server recordbin on port " + this.port);
 		//create encoder and muxer
 		Element enc = ElementFactory.make("theoraenc", "Theora encoder on server on port " + this.port);
+		//Element enc = ElementFactory.make("ffenc_mpeg4", "ffenc_mpeg4 encoder on server on port " + this.port);
 		Element mux = ElementFactory.make("oggmux", "ogg muxer on server on port " + this.port);
+//		Element mux = ElementFactory.make("avimux", "avi muxer on server on port " + this.port);
 		// fileSink
 		Element fileSink = ElementFactory.make("filesink", "File Sink on port " + this.port);
 		fileSink.set("location", fileName);

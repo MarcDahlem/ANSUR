@@ -38,136 +38,140 @@ public class GCMIntentService extends GCMBaseIntentService {
 			String msCamera_name = extras.getString(GcmMessages.CAMERA_NAME);
 			String msRoom_name = extras.getString(GcmMessages.ROOM_NAME);
 			String msPort = extras.getString(GcmMessages.PORT);
-			
-			String msMessage = "Cam: " + msCamera_name + " in: " + msRoom_name;
-			
-			createNotificationMotionDetected("Motion Detected on", msMessage, msFile_path.hashCode());
+
+			String msMessage = "Cam: " + msCamera_name + " in: " + msRoom_name + " on:" + msPort;
+			createNotificationMotionDetected("Motion detected on", msMessage, msFile_path.hashCode());
 			break;
-			
+
 		case MOTION_END:
 			String meFile_path = extras.getString(GcmMessages.FILE_PATH);
 			String meCamera_name = extras.getString(GcmMessages.CAMERA_NAME);
 			String meRoom_name = extras.getString(GcmMessages.ROOM_NAME);
 			String mePort = extras.getString(GcmMessages.PORT);
-			
+
 			String meMessage = "Download recorded motion";
-					
+
 			createNotificationMotionStopped("Motion detection stopped", meMessage, meFile_path.hashCode(), meFile_path);
 			break;
-			
+
 		case CAMERA_DOWN:
 			String cdCamera_name = extras.getString(GcmMessages.CAMERA_NAME);
 			String cdRoom_name = extras.getString(GcmMessages.ROOM_NAME);
 			String cdPort = extras.getString(GcmMessages.PORT);
-			
-			String cdMessage = "Camera on port: " + cdPort + " was disconnected";
-			
-			createNotificationCameraStopped("Lost camera", cdMessage, cdPort.hashCode());
+
+			String cdMessage = "Camera " + cdCamera_name+ " in " +cdRoom_name+ " on port: " + cdPort + " was disconnected";
+
+			Intent camIntent = new Intent(ListCamerasActivity.CAMERA_DISC_ACTION);
+			camIntent.putExtra(ListCamerasActivity.CAM_DISC_ROOM, cdRoom_name);
+			camIntent.putExtra(ListCamerasActivity.CAM_DISC_CAM, cdCamera_name);
+			camIntent.putExtra(ListCamerasActivity.CAM_DISC_PORT, cdPort);
+			context.sendBroadcast(camIntent);
+
+			createDefaultNotification(context, "Lost camera", cdMessage, cdPort.hashCode());
 			break;
-			
+
 		case SERVER_SHUTDOWN:
-			createNotificationServerStopped("Server down", "The server was shut down",1);
+			//unregister
+			GCMRegistrar.setRegisteredOnServer(context, false);
+			GCMRegistrar.unregister(context);
+
+			createDefaultNotification(context, "Server down", "The server was shut down",1);
 			break;
 		}
 
 	}
 
-	
+
 	public void createNotificationMotionDetected(String title, String message, int notificationID) {
-		
+
 		Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.motion);
-		
+
 		NotificationCompat.Builder mBuilder =
-		        new NotificationCompat.Builder(this)
-				.setSmallIcon(R.drawable.motion)
-		        .setLargeIcon(bMap)
-		        .setContentTitle(title)
-		        .setContentText(message)
-		        .setTicker("MOTION DETECTED");
+				new NotificationCompat.Builder(this)
+		.setSmallIcon(R.drawable.motion)
+		.setLargeIcon(bMap)
+		.setContentTitle(title)
+		.setContentText(message)
+		.setTicker("MOTION DETECTED");
 		// Creates an explicit intent for an Activity in your app
 		//Intent resultIntent = new Intent(this, MainActivity.class);
-		
+
 		// The stack builder object will contain an artificial back stack for the
 		// started Activity.
 		// This ensures that navigating backward from the Activity leads out of
 		// your application to the Home screen.
 		TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-		
+
 		// Adds the back stack for the Intent (but not the Intent itself)
 		stackBuilder = stackBuilder.addParentStack(MainActivity.class);
-		
+
 		// Adds the Intent that starts the Activity to the top of the stack
 		stackBuilder = stackBuilder.addNextIntent(launchVLC());
 		PendingIntent resultPendingIntent =
-		        stackBuilder.getPendingIntent(
-		            0,
-		            PendingIntent.FLAG_UPDATE_CURRENT
-		        );
+				stackBuilder.getPendingIntent(
+						0,
+						PendingIntent.FLAG_UPDATE_CURRENT
+						);
 		mBuilder = mBuilder.setContentIntent(resultPendingIntent);
 		NotificationManager mNotificationManager =
-		    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-		
+				(NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
 		// notificationID allows you to update the notification later on.
 		mNotificationManager.notify(notificationID, mBuilder.build());
-		
+
 		ClipboardManager clipboard = (ClipboardManager)
-		        getSystemService(Context.CLIPBOARD_SERVICE);
+				getSystemService(Context.CLIPBOARD_SERVICE);
 		ClipData clip = ClipData.newPlainText("Server","tcp://"+MainActivity.HOSTNAME+":"+MainActivity.PORT);
-		
+
 		clipboard.setPrimaryClip(clip);
-		
+
 	}
-	
+
 	public void createNotificationMotionStopped(String title, String message,int notificationID, String file_path ) {
-		//TODO: Same as before, only that instead if going to MainActivity, you download movie through connectionmanager
-		
+		// Same as before, only that instead if going to MainActivity, you download movie through connectionmanager
+
 		Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.download_button);
 		NotificationCompat.Builder mBuilder =
-		        new NotificationCompat.Builder(this)
-				.setSmallIcon(R.drawable.download_button)
-		        .setContentTitle(title)
-		        .setContentText(message)
-		        .setLargeIcon(bMap)
-		        .setAutoCancel(true)
-		        .setTicker("MOTION STOPPED");
+				new NotificationCompat.Builder(this)
+		.setSmallIcon(R.drawable.download_button)
+		.setContentTitle(title)
+		.setContentText(message)
+		.setLargeIcon(bMap)
+		.setAutoCancel(true)
+		.setTicker("MOTION STOPPED");
 		// Creates an explicit intent for an Activity in your app
 		Intent resultIntent = new Intent(this, DownloadFileActivity.class);
 		resultIntent.putExtra("FILE_PATH", file_path);
-		resultIntent.putExtra("MOVIE_PATH", "/storage/sdcard0/DCIM/Camera/20121209_181127.mp4");
 		// The stack builder object will contain an artificial back stack for the
 		// started Activity.
 		// This ensures that navigating backward from the Activity leads out of
 		// your application to the Home screen.
 		TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-		
+
 		// Adds the back stack for the Intent (but not the Intent itself)
 		stackBuilder = stackBuilder.addParentStack(MainActivity.class);
-		
+
 		// Adds the Intent that starts the Activity to the top of the stack
 		stackBuilder = stackBuilder.addNextIntent(resultIntent);
 		PendingIntent resultPendingIntent =
-		        stackBuilder.getPendingIntent(
-		            0,
-		            PendingIntent.FLAG_UPDATE_CURRENT
-		        );
+				stackBuilder.getPendingIntent(
+						0,
+						PendingIntent.FLAG_UPDATE_CURRENT
+						);
 		mBuilder = mBuilder.setContentIntent(resultPendingIntent);
 		NotificationManager mNotificationManager =
-		    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-		
+				(NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
 		// notificationID allows you to update the notification later on.
 		mNotificationManager.notify(notificationID, mBuilder.build());
 	}
-	
-	public void createNotificationCameraStopped(String title, String message,int notificationID ) {
-		//TODO: Implement unsubscribing cameras
-		
+
+	public void createDefaultNotification(Context context, String title, String message,int notificationID ) {
+		//TODO: createNotification just for messaging (server shutdown and camera disconnect)
+		MainActivity.displayMessage(context, message);
+
 	}
-	
-	public void createNotificationServerStopped(String title, String message,int notificationID ) {
-		//TODO: Implement
-		
-	}
-	
+
 	public Intent launchVLC(){
 		PackageManager packageManager = getApplicationContext().getPackageManager();
 		Intent applicationIntent = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER);
@@ -175,10 +179,10 @@ public class GCMIntentService extends GCMBaseIntentService {
 		String vendor = "VLC Player";
 		String packageName = "org.videolan.vlc.betav7neon";
 		String className = "org.videolan.vlc.betav7neon.gui.MainActivity";
-		
-		
+
+
 		boolean foundApplicationImpl = false;
-	
+
 		try {
 			ComponentName cn = new ComponentName(packageName, className);
 			ActivityInfo aInfo = packageManager.getActivityInfo(cn,
@@ -199,11 +203,13 @@ public class GCMIntentService extends GCMBaseIntentService {
 		return null;
 	}
 
-	
+
 	@Override
 	protected void onError(Context context, String errorId) {
-		// TODO Typically, there is nothing to be done other than evaluating the error (returned by errorId) and trying to fix the problem.
-
+		// Typically, there is nothing to be done other than evaluating the error (returned by errorId) and trying to fix the problem.
+		String message = "GCM error received with errorId "+errorId;
+		Log.e("ANSUR.GCMIntentService", message);
+		MainActivity.displayMessage(context, message);
 	}
 
 	@Override
@@ -213,7 +219,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 
 	@Override
 	protected void onUnregistered(Context context, String registrationId) {
-		// TODO send id to server in order to unregister the device from the server
+		// send id to server in order to unregister the device from the server
 		Log.i("ANSURGCM", "Unregistering device...");
 		if (GCMRegistrar.isRegisteredOnServer(context)) {
 			AppConnectionManager.unregister(context, registrationId);

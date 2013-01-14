@@ -91,4 +91,8 @@ public class Room {
 		result.put(Room.UNSUBSCRIPTION, outUnsub);
 		return result;
 	}
+
+	public void removeCamera(Camera cam) {
+		this.cams.remove(cam);
+	}
 }

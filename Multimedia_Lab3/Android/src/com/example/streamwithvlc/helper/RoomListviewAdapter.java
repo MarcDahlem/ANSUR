@@ -116,5 +116,19 @@ public class RoomListviewAdapter extends BaseExpandableListAdapter{
 		return Arrays.asList(this.rooms);
 	}
 
+	public void removeCamera(String cameraName, String roomName, int cameraPort) {
+		for (Room room: this.rooms) {
+			if (room.getRoomname().equals(roomName)) {
+				for (Camera cam:room.getCameras()) {
+					if (cam.getPort() == cameraPort && cam.getName().equals(cameraName)) {
+						room.removeCamera(cam);
+						this.notifyDataSetChanged();
+						return;
+					}
+				}
+			}
+		}
+	}
+
 }
 
