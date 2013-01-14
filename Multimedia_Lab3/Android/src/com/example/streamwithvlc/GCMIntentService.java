@@ -169,10 +169,10 @@ public class GCMIntentService extends GCMBaseIntentService {
 	public void createDefaultNotification(Context context, String ticker, String title, String message,int notificationID ) {
 		// Same as before, only that instead if going to MainActivity, you download movie through connectionmanager
 
-		Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.download_button);
+		Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.servercrash);
 		NotificationCompat.Builder mBuilder =
 				new NotificationCompat.Builder(this)
-		.setSmallIcon(R.drawable.download_button)
+		.setSmallIcon(R.drawable.servercrash)
 		.setContentTitle(title)
 		.setContentText(message)
 		.setLargeIcon(bMap)
