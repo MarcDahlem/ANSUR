@@ -1,5 +1,8 @@
 package com.example.streamwithvlc;
 
+import java.io.IOException;
+import java.net.UnknownHostException;
+
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -203,6 +206,28 @@ public class MainActivity extends Activity {
 			break;
 			
 		case R.id.downloadButton:
+				AsyncTask<Void, Void, Void> deregisterServerTask = new AsyncTask<Void, Void, Void>() {
+
+					@Override
+					protected Void doInBackground(Void... params) {
+						try {
+							ConnectionManager.downloadMotionRecord(getApplicationContext(), "/home/marc/Arbeitsfläche/2012_01_11_hospital_invoice_krankenkasse");
+						} catch (UnknownHostException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						return null;
+					}
+
+					@Override
+					protected void onPostExecute(Void result) {
+					}
+
+				};
+				deregisterServerTask.execute(null,null,null);
 			break;
 		}
 	}

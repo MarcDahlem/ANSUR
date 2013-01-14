@@ -16,6 +16,7 @@ import java.util.Scanner;
 import java.util.TreeMap;
 
 import android.content.Context;
+import android.os.Environment;
 import android.util.Log;
 import classes.Camera;
 import classes.Room;
@@ -449,27 +450,34 @@ public class ConnectionManager {
 
 			String newFilename = scanner.nextLine();
 
-
 			//read the file itself
-			byte [] bytearray  = new byte [filesize];
+			byte [] bytearray  = new byte [filesize*10];
+			Log.i("ANSUR", "File dir: " + context.getFilesDir().toString());
 
-			File file=new File(newFilename);
+			File file = new File(context.getExternalFilesDir(null), newFilename);
 			Log.i("ANSUR.Connection", "Trying to receive file to " +
 					file.getAbsolutePath());
 			FileOutputStream fileOutputStream = new FileOutputStream(file);
 			bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
 
-			for (int i=0;i<bytearray.length;i++) {
-				if (!scanner.hasNextByte()) {
-					String message = "Bytestream stopped at Byte " + (i+1) +"/"+bytearray.length+" before the file was fully received.";
-					MainActivity.displayMessage(context, message);
-					throw new IOException(message);
-				}
-				bytearray[i]=scanner.nextByte();
-			}
+
+
+			int result = in.read(bytearray);
+
+			//			for (int i=0;i<bytearray.length;i++) {
+			//				in.read(bytearray);
+			//				if (!scanner.hasNextByte()) {
+			//					String message = "Bytestream stopped at Byte " + (i+1) +"/"+bytearray.length+" before the file was fully received.";
+			//					MainActivity.displayMessage(context, message);
+			//					throw new IOException(message);
+			//				}
+			//				bytearray[i]=scanner.nextByte();
+			//			}
 
 			bufferedOutputStream.write(bytearray, 0 , bytearray.length);
 			bufferedOutputStream.flush();
+
+			Log.i("ANSUR", "Downloading movie finished!");
 
 
 		} finally {
