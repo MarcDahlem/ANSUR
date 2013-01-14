@@ -67,7 +67,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 			camIntent.putExtra(ListCamerasActivity.CAM_DISC_PORT, cdPort);
 			context.sendBroadcast(camIntent);
 
-			createDefaultNotification(context, "Lost camera", cdMessage, cdPort.hashCode());
+			createDefaultNotification(context, "CAMERA LOST", "Lost camera", cdMessage, cdPort.hashCode());
 			break;
 
 		case SERVER_SHUTDOWN:
@@ -75,7 +75,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 			GCMRegistrar.setRegisteredOnServer(context, false);
 			GCMRegistrar.unregister(context);
 
-			createDefaultNotification(context, "Server down", "The server was shut down",1);
+			createDefaultNotification(context, "SERVER SHUTDOWN", "Server down", "The server was shut down",1);
 			break;
 		}
 
@@ -166,8 +166,39 @@ public class GCMIntentService extends GCMBaseIntentService {
 		mNotificationManager.notify(notificationID, mBuilder.build());
 	}
 
-	public void createDefaultNotification(Context context, String title, String message,int notificationID ) {
-		//TODO: createNotification just for messaging (server shutdown and camera disconnect)
+	public void createDefaultNotification(Context context, String ticker, String title, String message,int notificationID ) {
+		// Same as before, only that instead if going to MainActivity, you download movie through connectionmanager
+
+		Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.download_button);
+		NotificationCompat.Builder mBuilder =
+				new NotificationCompat.Builder(this)
+		.setSmallIcon(R.drawable.download_button)
+		.setContentTitle(title)
+		.setContentText(message)
+		.setLargeIcon(bMap)
+		.setAutoCancel(true)
+		.setTicker(ticker);
+		// Creates an explicit intent for an Activity in your app
+		Intent resultIntent = new Intent();
+		// The stack builder object will contain an artificial back stack for the
+		// started Activity.
+		// This ensures that navigating backward from the Activity leads out of
+		// your application to the Home screen.
+		TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+
+		// Adds the Intent that starts the Activity to the top of the stack
+		stackBuilder = stackBuilder.addNextIntent(resultIntent);
+		PendingIntent resultPendingIntent =
+				stackBuilder.getPendingIntent(
+						0,
+						PendingIntent.FLAG_UPDATE_CURRENT
+						);
+		mBuilder = mBuilder.setContentIntent(resultPendingIntent);
+		NotificationManager mNotificationManager =
+				(NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+		// notificationID allows you to update the notification later on.
+		mNotificationManager.notify(notificationID, mBuilder.build());
 		MainActivity.displayMessage(context, message);
 
 	}
