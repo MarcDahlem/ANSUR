@@ -1,6 +1,7 @@
 package com.example.streamwithvlc.helper;
 
 import java.util.Collection;
+import java.util.Collections;
 
 import com.example.streamwithvlc.R;
 
@@ -22,7 +23,7 @@ public class RoomListviewAdapter extends BaseExpandableListAdapter{
 	public RoomListviewAdapter(Context context, Collection<Room> rooms) {
 		super();
 		this.inflater = LayoutInflater.from(context);
-		this.rooms=rooms.toArray(new Room[0]);
+		this.setRooms(rooms);
 		this.context=context;
 	}
 
@@ -47,10 +48,10 @@ public class RoomListviewAdapter extends BaseExpandableListAdapter{
 		boolean subscribed = cam.isSubscribed();
 		checkbox.setChecked(selected);
 		if (selected && subscribed) {
-			convertView.setBackgroundDrawable(context.getResources().getDrawable(R.drawable.bg));
+			//convertView.setBackgroundDrawable(context.getResources().getDrawable(R.drawable.bg));
 		} else {
 			if (!selected && !subscribed) {
-			convertView.setBackgroundResource(R.color.darkgrey);
+			//convertView.setBackgroundResource(R.color.darkgrey);
 			} else {
 				// unequal state
 				convertView.setBackgroundDrawable(context.getResources().getDrawable(R.drawable.bg_orange));
@@ -88,10 +89,12 @@ public class RoomListviewAdapter extends BaseExpandableListAdapter{
 		CheckBox checkbox = (CheckBox) convertView.findViewById(R.id.roomCheckbox);
 		boolean selected = room.isSelected();
 		checkbox.setChecked(selected);
+		
+		//TODO
 		if (selected) {
-			convertView.setBackgroundDrawable(context.getResources().getDrawable(R.drawable.bg));
+			//convertView.setBackgroundDrawable(context.getResources().getDrawable(R.drawable.bg));
 		} else {
-			convertView.setBackgroundResource(R.color.darkgrey);
+			//convertView.setBackgroundResource(R.color.darkgrey);
 		}
 		checkbox.setOnCheckedChangeListener(new RoomClickListener(room, this));
 		return convertView;	
@@ -110,6 +113,9 @@ public class RoomListviewAdapter extends BaseExpandableListAdapter{
 	}
 
 	public void setRooms(Collection<Room> rooms) {
+		for (Room room:rooms) {
+			Collections.sort(room.getCameras());
+		}
 		this.rooms=rooms.toArray(new Room[0]);
 	}
 

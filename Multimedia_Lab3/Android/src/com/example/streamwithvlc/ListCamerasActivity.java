@@ -1,39 +1,103 @@
 package com.example.streamwithvlc;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.ExpandableListView;
 import android.widget.Toast;
-import classes.Camera;
 import classes.Room;
 
 import com.example.streamwithvlc.helper.RoomListviewAdapter;
 
 public class ListCamerasActivity extends Activity {
 
+	private AsyncTask<Void, Void, Void> refreshTask;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
 		setContentView(R.layout.activity_cameralist);
 
-        // Get the ExpandableListView from the layout
-        ExpandableListView listView = (ExpandableListView) findViewById(R.id.listView);
+		registerReceiver(mHandleMessageReceiver,new IntentFilter(MainActivity.TOAST_MESSAGE_ACTION));
+
+		// Get the ExpandableListView from the layout
+
+		ExpandableListView listView = getListView();
 
 		//getExpandableListView().setGroupIndicator(null);
 		//getExpandableListView().setDivider(null);
 		//getExpandableListView().setDividerHeight(0);
 		//registerForContextMenu(getExpandableListView());
-		
+
 		Collection<Room> rooms = this.generateRooms();
-		
+
+		updateListview(listView, rooms);
+		this.refreshList();
+
+	}
+
+
+	private ExpandableListView getListView() {
+		ExpandableListView listView = (ExpandableListView) findViewById(R.id.listView);
+		return listView;
+	}
+
+
+	private void refreshList() {
+		final Context context = this;
+		refreshTask = new AsyncTask<Void, Void, Void>() {
+
+			@Override
+			protected Void doInBackground(Void... params) {
+
+				try {
+					final Collection<Room> newRooms = ConnectionManager.getAllCameras(context);
+					final ExpandableListView listView = ListCamerasActivity.this.getListView();
+					ListCamerasActivity.this.runOnUiThread(new Runnable() {
+
+						@Override
+						public void run() {
+							ListCamerasActivity.this.updateListview(listView, newRooms);
+						}
+					});
+				} catch (final IOException e) {
+					Log.e("ANSUR", "Get cameras error: ", e);
+					ListCamerasActivity.this.runOnUiThread(new Runnable() {
+
+						@Override
+						public void run() {
+							Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();
+						}
+					});
+				}
+
+				return null;
+			}
+
+			@Override
+			protected void onPostExecute(Void result) {
+				refreshTask = null;
+			}
+
+		};
+		refreshTask.execute(null, null, null);
+	}
+
+
+	private void updateListview(ExpandableListView listView,
+			Collection<Room> rooms) {
 		if (listView.getExpandableListAdapter() == null) {
 			RoomListviewAdapter adapter = new RoomListviewAdapter(this,rooms);
 			listView.setAdapter(adapter);
@@ -44,7 +108,7 @@ public class ListCamerasActivity extends Activity {
 		}
 	}
 
-	
+
 	public void onClick(View view) {
 		switch(view.getId()) {
 
@@ -62,30 +126,9 @@ public class ListCamerasActivity extends Activity {
 			break;
 		}
 	}
-	
-	private Collection<Room> generateRooms() {
-		String room1Name = "ZYX";
-		String room2Name = "ABC";
-		
-		Room room1 = new Room(room1Name);
-		Room room2 = new Room (room2Name);
-		
+
+	private Collection<Room> generateRooms() {		
 		Map<String, Room> knownRooms = new TreeMap<String,Room>();
-		knownRooms.put(room1Name, room1);
-		knownRooms.put(room2Name, room2);
-		
-		Camera cam1 = new Camera("zyx", 8000, false);
-		Camera cam2 = new Camera("abc", 8001, false);
-		Camera cam3 = new Camera("wvu",8002,false);
-		Camera cam4 = new Camera("def", 8003, false);
-		
-		Room room = knownRooms.get(room2Name);
-		room.addCamera(cam3);
-		room.addCamera(cam4);
-		
-		room = knownRooms.get(room1Name);
-		room.addCamera(cam1);
-		room.addCamera(cam2);
 		return knownRooms.values();
 	}
 
@@ -95,5 +138,23 @@ public class ListCamerasActivity extends Activity {
 		getMenuInflater().inflate(R.menu.activity_main, menu);
 		return true;
 	}
+
+	@Override
+	protected void onDestroy() {
+		unregisterReceiver(mHandleMessageReceiver);
+
+		if (refreshTask != null) {
+			refreshTask.cancel(true);
+		}
+		super.onDestroy();
+	}
+
+	private final BroadcastReceiver mHandleMessageReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			String message = intent.getExtras().getString(MainActivity.EXTRA_MESSAGE);
+			Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+		}
+	};
 
 }

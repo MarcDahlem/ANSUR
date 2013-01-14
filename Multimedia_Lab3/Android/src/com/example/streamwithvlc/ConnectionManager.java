@@ -13,7 +13,6 @@ import java.util.TreeMap;
 
 import android.content.Context;
 import android.util.Log;
-import android.widget.Toast;
 import classes.Camera;
 import classes.Room;
 
@@ -27,10 +26,10 @@ public class ConnectionManager {
 	private static final Random random = new Random();
 
 	public static boolean register(final Context context, String registrationId) {
-		Log.i("ANSURGCM", "Registering device (regId = " + registrationId + ")");
+		String message = "Registering device (regId = " + registrationId + ")";
+		Log.i("ANSURGCM", message);
 
-		Toast.makeText(context, "Registering device (regId = " + registrationId + ")",
-				Toast.LENGTH_SHORT).show();
+		MainActivity.displayMessage(context, message);
 
 		ConnectionEventType type = ConnectionEventType.CLIENT_REGISTER;
 
@@ -65,29 +64,30 @@ public class ConnectionManager {
 					//then wait for an answer and check if it is true or false
 					scanner = new Scanner(in);
 					if (!scanner.hasNextLine()) {
-						Toast.makeText(context, "Server did not answer!",
-								Toast.LENGTH_SHORT).show();
-						throw new IOException("Server did not answer!");
+						String notAnswerMessage = "Server did not answer!";
+						MainActivity.displayMessage(context, notAnswerMessage);
+						throw new IOException(notAnswerMessage);
 					}
 
 					String line = scanner.nextLine();
 
 					//everything is fine. Read the answer
 					if ("true".equals(line)) {
-						Toast.makeText(context, "Device successfully (un)registered on server (regId = " + registrationId + ")",
-								Toast.LENGTH_SHORT).show();
-						Log.i("ANSURGCM", "Device successfully (un)registered on server (regId = " + registrationId + ")");
+						
+						String successMessage = "Device successfully (un)registered on server (regId = " + registrationId + ")";
+						MainActivity.displayMessage(context, successMessage);
+						Log.i("ANSURGCM", successMessage);
 						return true;
 					} else {
 						if ("false".equals(line)) {
-							Toast.makeText(context, "Device is allready registerd on server",
-									Toast.LENGTH_SHORT).show();
+							String message = "Device is allready registerd on server";
+							MainActivity.displayMessage(context, message);
 							return true;
 						} else {
 							if (ConnectionEventType.SERVER_EXCEPTION.name().equals(line)) {
-								Toast.makeText(context, "Server answered with an exception.",
-										Toast.LENGTH_SHORT).show();
-								throw new IOException("Server answered with an exception.");
+								String message = "Server answered with an exception.";
+								MainActivity.displayMessage(context, message);
+								throw new IOException(message);
 							}
 							throw new IOException("Server answered with an unknown answer '"+line+"'.");
 
@@ -131,10 +131,10 @@ public class ConnectionManager {
 	}
 
 	public static boolean unregister(Context context, String registrationId) {
-		Log.i("ANSURGCM", "unregistering device (regId = " + registrationId + ")");
-		Toast.makeText(context, "unregistering device (regId = " + registrationId + ")",
-				Toast.LENGTH_SHORT).show();
-
+		String message = "unregistering device (regId = " + registrationId + ")";
+		Log.i("ANSURGCM", message);
+		MainActivity.displayMessage(context, message);
+		
 		ConnectionEventType type = ConnectionEventType.CLIENT_DEREGISTER;
 
 		//TODO unsubscribe from all subscibed cameras
@@ -164,14 +164,15 @@ public class ConnectionManager {
 			//then wait for the answer and restructure it
 			scanner = new Scanner(in);
 			if (!scanner.hasNextLine()) {
-				Toast.makeText(context, "Server did not answer!", Toast.LENGTH_SHORT).show();
-				throw new IOException("Server did not answer!");
+				String message = "Server did not answer!";
+				MainActivity.displayMessage(context, message);
+				throw new IOException(message);
 			}
 
 			if (!scanner.hasNextInt()) {
 				String line = scanner.nextLine();
 				String message = "Server did not answer correctly! Expected number of cameras, got '"+ line + "'.";
-				Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+				MainActivity.displayMessage(context, message);
 				throw new IOException(message);
 			}
 			int amount = scanner.nextInt();
@@ -184,14 +185,14 @@ public class ConnectionManager {
 
 				if (!scanner.hasNextLine()) {
 					String message = "No camera port for camera " + (i+1) +"/" + amount + ".";
-					Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+					MainActivity.displayMessage(context, message);
 					throw new IOException(message);
 				}
 
 				if (!scanner.hasNextInt()) {
 					String line = scanner.nextLine();
 					String message = "Server did not answer correctly! Expected port of camera, got '"+ line + "'.";
-					Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+					MainActivity.displayMessage(context, message);
 					throw new IOException(message);
 				}
 
@@ -200,7 +201,7 @@ public class ConnectionManager {
 				scanner.nextLine();
 				if (!scanner.hasNextLine()) {
 					String message = "No room name for camera " + (i+1) +"/" + amount + " on port " + port +".";
-					Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+					MainActivity.displayMessage(context, message);
 					throw new IOException(message);
 				}
 
@@ -208,7 +209,7 @@ public class ConnectionManager {
 
 				if (!scanner.hasNextLine()) {
 					String message = "No camera name for camera " + (i+1) +"/" + amount + " on port " + port +" in room "+ roomName+".";
-					Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+					MainActivity.displayMessage(context, message);
 					throw new IOException(message);
 				}
 
@@ -273,15 +274,16 @@ public class ConnectionManager {
 			//then wait for the answer
 			scanner = new Scanner(in);
 			if (!scanner.hasNextLine()) {
-				Toast.makeText(context, "Server did not answer!", Toast.LENGTH_SHORT).show();
-				throw new IOException("Server did not answer!");
+				String message = "Server did not answer!";
+				MainActivity.displayMessage(context, message);
+				throw new IOException(message);
 			}
 
 			String answer = scanner.nextLine();
 
 			if (ConnectionEventType.SERVER_EXCEPTION.name().equals(answer)) {
 				String message = "Server answered with an exception. It can be that one client to subscribe to is not available.";
-				Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+				MainActivity.displayMessage(context, message);
 				throw new IOException(message);
 			}
 
@@ -291,7 +293,7 @@ public class ConnectionManager {
 				return;
 			} else {
 				String message = "Serveranswer is unknown. '" + answer + "'.";
-				Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+				MainActivity.displayMessage(context, message);
 				throw new IOException(message);
 			}
 		} finally {
@@ -335,15 +337,16 @@ public class ConnectionManager {
 			//then wait for the answer
 			scanner = new Scanner(in);
 			if (!scanner.hasNextLine()) {
-				Toast.makeText(context, "Server did not answer!", Toast.LENGTH_SHORT).show();
-				throw new IOException("Server did not answer!");
+				String message = "Server did not answer!";
+				MainActivity.displayMessage(context, message);
+				throw new IOException(message);
 			}
 
 			String answer = scanner.nextLine();
 
 			if (ConnectionEventType.SERVER_EXCEPTION.name().equals(answer)) {
 				String message = "Server answered with an exception. It can be that one client to subscribe to is not available.";
-				Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+				MainActivity.displayMessage(context, message);
 				throw new IOException(message);
 			}
 
@@ -353,7 +356,7 @@ public class ConnectionManager {
 				return;
 			} else {
 				String message = "Serveranswer is unknown. '" + answer + "'.";
-				Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+				MainActivity.displayMessage(context, message);
 				throw new IOException(message);
 			}
 		} finally {

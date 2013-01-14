@@ -1,6 +1,6 @@
 package classes;
 
-public class Camera {
+public class Camera implements Comparable<Camera>{
 
 	private String name;
 	private int port;
@@ -36,6 +36,15 @@ public class Camera {
 
 	public boolean isSubscribed() {
 		return this.isSubscribed;
+	}
+
+	@Override
+	public int compareTo(Camera another) {
+		if (another==null) {
+			return 1;
+		} else {
+			return this.toString().compareToIgnoreCase((another.toString()));
+		}
 	}
 	
 }

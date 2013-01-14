@@ -21,19 +21,22 @@ public final class R {
         public static final int ic_launcher=0x7f020002;
     }
     public static final class id {
-        public static final int ServerhostNameField=0x7f080004;
-        public static final int camCheckbox=0x7f080009;
-        public static final int camname=0x7f080008;
-        public static final int connectButton=0x7f080001;
-        public static final int dConnectButton=0x7f080003;
-        public static final int listView=0x7f080000;
-        public static final int roomCheckbox=0x7f08000b;
-        public static final int roomName=0x7f08000a;
-        public static final int save_settings_button=0x7f080006;
-        public static final int serverPortField=0x7f080005;
-        public static final int settings=0x7f08000c;
-        public static final int settings_back_button=0x7f080007;
-        public static final int startButton=0x7f080002;
+        public static final int ServerhostNameField=0x7f080007;
+        public static final int camCheckbox=0x7f08000c;
+        public static final int camname=0x7f08000b;
+        public static final int connectButton=0x7f080004;
+        public static final int dConnectButton=0x7f080006;
+        public static final int listView=0x7f080003;
+        public static final int list_back_Button=0x7f080002;
+        public static final int refreshButton=0x7f080001;
+        public static final int roomCheckbox=0x7f08000e;
+        public static final int roomName=0x7f08000d;
+        public static final int save_settings_button=0x7f080009;
+        public static final int serverPortField=0x7f080008;
+        public static final int settings=0x7f08000f;
+        public static final int settings_back_button=0x7f08000a;
+        public static final int startButton=0x7f080005;
+        public static final int subscribeButton=0x7f080000;
     }
     public static final class layout {
         public static final int activity_cameralist=0x7f030000;
