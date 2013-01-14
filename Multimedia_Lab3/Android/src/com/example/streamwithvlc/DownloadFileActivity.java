@@ -3,10 +3,9 @@ package com.example.streamwithvlc;
 import java.io.IOException;
 import java.net.UnknownHostException;
 
+import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.app.Activity;
-import android.content.Intent;
 import android.view.Menu;
 
 public class DownloadFileActivity extends Activity {
@@ -32,7 +31,7 @@ public class DownloadFileActivity extends Activity {
 			@Override
 			protected Void doInBackground(Void... params) {
 				try {
-					ConnectionManager.downloadMotionRecord(getApplicationContext(), "/home/marc/Arbeitsfläche/2012_01_11_hospital_invoice_krankenkasse");
+					AppConnectionManager.downloadMotionRecord(getApplicationContext(), "/home/marc/Arbeitsflï¿½che/2012_01_11_hospital_invoice_krankenkasse");
 				} catch (UnknownHostException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

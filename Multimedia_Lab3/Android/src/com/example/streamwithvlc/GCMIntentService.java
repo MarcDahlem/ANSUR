@@ -207,7 +207,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 
 	@Override
 	protected void onRegistered(Context context, String registrationId) {
-		ConnectionManager.register(context, registrationId);
+		AppConnectionManager.register(context, registrationId);
 	}
 
 	@Override
@@ -215,7 +215,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 		// TODO send id to server in order to unregister the device from the server
 		Log.i("ANSURGCM", "Unregistering device...");
 		if (GCMRegistrar.isRegisteredOnServer(context)) {
-			ConnectionManager.unregister(context, registrationId);
+			AppConnectionManager.unregister(context, registrationId);
 		} else {
 			// This callback results from the call to unregister made on
 			// MainActivity when the registration to the server failed.

@@ -49,7 +49,7 @@ import commonUtility.ConnectionEventType;
 
 import server.connectionManager.ConnectionEvent;
 import server.connectionManager.ConnectionListener;
-import server.connectionManager.ConnectionManager;
+import server.connectionManager.ServerConnectionManager;
 import server.motionRecorder.MotionRecorder;
 import server.motionRecorder.MotionRecorderEvent;
 import server.motionRecorder.MotionRecorderEventType;
@@ -87,7 +87,7 @@ public class Gui {
 	private Button button_play;
 	private Button button_record;
 	private ConnectionListener listener_connectionManager;
-	private ConnectionManager currentConnectionManager;
+	private ServerConnectionManager currentConnectionManager;
 	private volatile ArrayList<MotionRecorder> pipeList;
 
 	private volatile String currentOverlayMessage;
@@ -987,7 +987,7 @@ public class Gui {
 			}
 		}
 
-		final ConnectionManager manager = new ConnectionManager(Gui.SERVER_PORT);
+		final ServerConnectionManager manager = new ServerConnectionManager(Gui.SERVER_PORT);
 		manager.addConnectionListener(this.listener_connectionManager);
 		new Thread(new Runnable() {
 

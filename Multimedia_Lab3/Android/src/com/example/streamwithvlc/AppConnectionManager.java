@@ -16,7 +16,6 @@ import java.util.Scanner;
 import java.util.TreeMap;
 
 import android.content.Context;
-import android.os.Environment;
 import android.util.Log;
 import classes.Camera;
 import classes.Room;
@@ -24,7 +23,7 @@ import classes.Room;
 import com.google.android.gcm.GCMRegistrar;
 import commonUtility.ConnectionEventType;
 
-public class ConnectionManager {
+public class AppConnectionManager {
 
 	private static final int MAX_ATTEMPTS = 5;
 	private static final int BACKOFF_MILLI_SECONDS = 2000;
@@ -400,11 +399,10 @@ public class ConnectionManager {
 	}
 
 
-	public static void downloadMotionRecord(Context context, String filename) throws UnknownHostException, IOException {
+	public static void downloadMotionRecord(final Context context, String filename) throws UnknownHostException, IOException {
 		PrintWriter pw = null;
 		Scanner scanner = null;
 		Socket socket = null;
-		BufferedOutputStream bufferedOutputStream=null;
 		Log.i("ANSUR", "Trying to download movie...");
 		try {
 			//create a socket
@@ -439,7 +437,7 @@ public class ConnectionManager {
 				}
 			}
 
-			int filesize = scanner.nextInt();
+			final int filesize = scanner.nextInt();
 			scanner.nextLine();
 
 			if (!scanner.hasNextLine()) {
@@ -448,13 +446,70 @@ public class ConnectionManager {
 				throw new IOException(message);
 			}
 
-			String newFilename = scanner.nextLine();
+			final String newFilename = scanner.nextLine();
 
+			// read the port for the download
+			if (!scanner.hasNextLine()) {
+				String message = "Server did not send the download port! Not conform to the protocol.";
+				MainActivity.displayMessage(context, message);
+				throw new IOException(message);
+			}
+
+			if (!scanner.hasNextInt()) {
+				String answer = scanner.nextLine();
+				String message = "Server answered not with the donwload port, but with '" + answer+ "'! Not conform to the protocol.";
+				MainActivity.displayMessage(context, message);
+				throw new IOException(message);
+			}
+
+			final int downloadPort = scanner.nextInt();
+
+			//start downloading
+			new Thread(new Runnable() {
+
+				@Override
+				public void run() {
+					try {
+						AppConnectionManager.startRealDownload(downloadPort, context, filesize, newFilename);
+					} catch (IOException e) {
+						Log.e("ANSUR.connection", "Downloading movie failed: ",e);
+						MainActivity.displayMessage(context, e.getMessage());
+					}
+				}
+			}).start();
+
+
+		} finally {
+			//finally close all streams etc
+			if(pw!=null) {
+				pw.close();
+			}
+			if (scanner!=null) {
+				scanner.close();	
+			}
+			
+			if (socket!=null){
+				socket.close();
+			}
+		}
+
+	}
+
+	private static void startRealDownload(int downloadPort, Context context, int filesize, String filename) throws IOException {
+		BufferedOutputStream bufferedOutputStream=null;
+		Socket socket = null;
+		InputStream in = null;
+		try{
+			//create a socket
+			socket = new Socket(MainActivity.HOSTNAME, MainActivity.PORT);
+			in = socket.getInputStream();
+			
 			//read the file itself
-			byte [] bytearray  = new byte [filesize*10];
+			byte [] bytearray  = new byte [filesize];
 			Log.i("ANSUR", "File dir: " + context.getFilesDir().toString());
 
-			File file = new File(context.getExternalFilesDir(null), newFilename);
+
+			File file = new File(context.getExternalFilesDir(null), filename);
 			Log.i("ANSUR.Connection", "Trying to receive file to " +
 					file.getAbsolutePath());
 			FileOutputStream fileOutputStream = new FileOutputStream(file);
@@ -464,6 +519,10 @@ public class ConnectionManager {
 
 			int result = in.read(bytearray);
 
+			if (result!=filesize) {
+				String message = "Downloading error. Received bytes = " + result + ", expected bytes =" +filesize+".";
+				throw new IOException(message);
+			}
 			//			for (int i=0;i<bytearray.length;i++) {
 			//				in.read(bytearray);
 			//				if (!scanner.hasNextByte()) {
@@ -478,26 +537,14 @@ public class ConnectionManager {
 			bufferedOutputStream.flush();
 
 			Log.i("ANSUR", "Downloading movie finished!");
-
-
 		} finally {
-			//finally close all streams etc
-			if(pw!=null) {
-
-				pw.close();
-			}
-			if (scanner!=null) {
-				scanner.close();	
-			}
-
 			if (bufferedOutputStream !=null) {
 				bufferedOutputStream.close();
 			}
-			if (socket!=null){
-				socket.close();
+			
+			if (in!=null) {
+				in.close();
 			}
 		}
-
 	}
-
 }

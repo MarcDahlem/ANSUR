@@ -11,6 +11,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Scanner;
 
 import javax.swing.event.EventListenerList;
@@ -19,18 +21,20 @@ import commonUtility.ConnectionEventType;
 
 import server.motionRecorder.MotionRecorder;
 
-public class ConnectionManager {
+public class ServerConnectionManager {
 	private int port;
 	private ServerSocket serverSocket;
 	private EventListenerList listeners;
 	private int portCount = 5001;
 	private volatile boolean stopped;
+	private List<ServerSocket> transportSockets;
 
-	public ConnectionManager(int port) throws IOException {
+	public ServerConnectionManager(int port) throws IOException {
 		this.port=port;
 		this.serverSocket = new ServerSocket(this.port);
 		this.listeners = new EventListenerList();
 		this.stopped = false;
+		this.transportSockets=new LinkedList<ServerSocket>();
 	}
 
 	public void addConnectionListener( ConnectionListener listener ) {
@@ -145,29 +149,84 @@ public class ConnectionManager {
 		String filename = scanner.nextLine();
 
 		//TODO checks
-		BufferedInputStream bin=null;
 
-		try{
-			File motionFile = new File (filename);
-			String motionFileName = motionFile.getName();
-			int fileLength = (int)motionFile.length();
-			byte [] bytearray  = new byte [fileLength];
+		final File motionFile = new File (filename);
+		String motionFileName = motionFile.getName();
+		final int fileLength = (int)motionFile.length();
 
-			FileInputStream fileInputStream = new FileInputStream(motionFile);
-			bin = new BufferedInputStream(fileInputStream);
-			bin.read(bytearray,0,bytearray.length);
-
-			//write filelength and filename
-			writer.write(fileLength+"\n");
-			writer.write(motionFileName+"\n");
-			writer.flush();
+		//write filelength, filename and the port where the transport will be started
+		writer.write(fileLength+"\n");
+		writer.write(motionFileName+"\n");
+		final int transportPort = this.portCount;
+		//start the connection on this new port
+		
+		new Thread(new Runnable() {
 			
-			//write motion file
-			out.write(bytearray,0,bytearray.length);
-			out.flush();
-		}finally {
-			if (bin!=null) {
-				bin.close();
+			@Override
+			public void run() {
+				try {
+					ServerConnectionManager.this.startMotionTransport(transportPort, motionFile, fileLength);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}				
+			}
+		}).start();
+		
+		this.portCount++;
+		writer.write(transportPort+"\n");
+		writer.flush();
+	}
+
+	public void startMotionTransport(int transportPort, File motionFile, int fileLength) throws IOException {
+		ServerSocket downloadServerSocket = null;
+		this.transportSockets.add(downloadServerSocket);
+		Socket transportSocket=null;
+		try{
+			downloadServerSocket = new ServerSocket(transportPort);
+			this.transportSockets.add(downloadServerSocket);
+			transportSocket = downloadServerSocket.accept();
+			InputStream in=null;
+			OutputStream out=null;
+			BufferedInputStream bin=null;
+
+			try {
+				out = transportSocket.getOutputStream();
+				byte [] bytearray  = new byte [fileLength];
+
+				FileInputStream fileInputStream = new FileInputStream(motionFile);
+				bin = new BufferedInputStream(fileInputStream);
+				bin.read(bytearray,0,bytearray.length);
+				//write motion file
+				out.write(bytearray);
+				out.flush();
+
+			} finally {
+
+				if (in!= null) {
+					in.close();
+				}
+				if (out!= null) {
+					out.close();
+				}
+				if (bin!=null) {
+					bin.close();
+				}
+			}
+		} catch (SocketException e){
+			if (!this.stopped) {
+				throw e;
+			} //else connection manager stopped, expected behavior
+		} finally {
+			if ( transportSocket != null ) {
+				transportSocket.close();
+			}
+			if (downloadServerSocket != null) {
+				downloadServerSocket.close();
+			}
+			if (!stopped) {
+				//do not delete if it was caused by a stop event
+				this.transportSockets.remove(downloadServerSocket);
 			}
 		}
 	}
@@ -395,5 +454,10 @@ public class ConnectionManager {
 	public void stop() throws IOException{
 		this.stopped = true;
 		this.serverSocket.close();
+		for (ServerSocket sock:this.transportSockets) {
+			sock.close();
+		}
+		//delete all of this sockets
+		this.transportSockets=new LinkedList<ServerSocket>();
 	}
 }

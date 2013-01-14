@@ -69,7 +69,7 @@ public class ListCamerasActivity extends Activity {
 
 				try {
 					String regId =GCMRegistrar.getRegistrationId(context);
-					final Collection<Room> newRooms = ConnectionManager.getAllCameras(context, regId);
+					final Collection<Room> newRooms = AppConnectionManager.getAllCameras(context, regId);
 					final ExpandableListView listView = ListCamerasActivity.this.getListView();
 					ListCamerasActivity.this.runOnUiThread(new Runnable() {
 
@@ -163,7 +163,7 @@ public class ListCamerasActivity extends Activity {
 					}
 
 					if (!sub_cameras.isEmpty()) {
-						ConnectionManager.subscribeTo(context, sub_cameras, regId);
+						AppConnectionManager.subscribeTo(context, sub_cameras, regId);
 
 
 						for (Camera sub_camera:sub_cameras) {
@@ -172,7 +172,7 @@ public class ListCamerasActivity extends Activity {
 					}
 
 					if (!unsub_cameras.isEmpty()) {
-						ConnectionManager.unsubscribeFrom(context, unsub_cameras, regId);
+						AppConnectionManager.unsubscribeFrom(context, unsub_cameras, regId);
 
 						for (Camera unsub_cam : unsub_cameras) {
 							unsub_cam.setSubscribed(false);
