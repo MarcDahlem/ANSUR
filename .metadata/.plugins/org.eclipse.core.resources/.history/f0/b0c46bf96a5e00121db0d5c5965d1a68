@@ -42,7 +42,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:onClick="onClick"
-            android:text="Download movie"
+            android:text="@string/dConnectButton"
             android:textColor="#008080" />
     </LinearLayout>
 

@@ -162,7 +162,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 	}
 	
 	public void createNotificationServerStopped(String title, String message,int notificationID ) {
-		//TODO: Implement
+		//TODO: 
 		
 	}
 	

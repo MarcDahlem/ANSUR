@@ -201,6 +201,9 @@ public class MainActivity extends Activity {
 		case R.id.dConnectButton:
 			deregisterDevice();
 			break;
+			
+		case R.id.downloadButton:
+			break;
 		}
 	}
 	

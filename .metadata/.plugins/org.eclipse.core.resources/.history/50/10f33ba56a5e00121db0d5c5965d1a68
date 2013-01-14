@@ -157,12 +157,12 @@ public class GCMIntentService extends GCMBaseIntentService {
 	}
 	
 	public void createNotificationCameraStopped(String title, String message,int notificationID ) {
-		//TODO: Implement unsubscribing cameras
+		//TODO: Same as before, only that instead if going to MainActivity, you download movie through connectionmanager
 		
 	}
 	
 	public void createNotificationServerStopped(String title, String message,int notificationID ) {
-		//TODO: Implement
+		//TODO: Same as before, only that instead if going to MainActivity, you download movie through connectionmanager
 		
 	}
 	
