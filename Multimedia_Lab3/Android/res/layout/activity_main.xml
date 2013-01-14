@@ -27,7 +27,7 @@
             android:onClick="onClick"
             android:text="@string/cameraListButton"
             android:textColor="#008080" />
-        
+		
          <Button
             android:id="@+id/dConnectButton"
             android:layout_width="wrap_content"
