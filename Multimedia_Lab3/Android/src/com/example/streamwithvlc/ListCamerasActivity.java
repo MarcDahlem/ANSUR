@@ -5,9 +5,12 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
+import android.view.View;
 import android.widget.ExpandableListView;
+import android.widget.Toast;
 import classes.Camera;
 import classes.Room;
 
@@ -41,6 +44,25 @@ public class ListCamerasActivity extends Activity {
 		}
 	}
 
+	
+	public void onClick(View view) {
+		switch(view.getId()) {
+
+		//Move the user to "new movie" page
+		case R.id.subscribeButton:
+			Toast.makeText(getApplicationContext(), "Subscribing", Toast.LENGTH_SHORT).show();
+			break;
+
+		case R.id.refreshButton:
+			Toast.makeText(getApplicationContext(), "Refreshing", Toast.LENGTH_SHORT).show();
+			break;
+
+		case R.id.list_back_Button:
+			finish();
+			break;
+		}
+	}
+	
 	private Collection<Room> generateRooms() {
 		String room1Name = "ZYX";
 		String room2Name = "ABC";

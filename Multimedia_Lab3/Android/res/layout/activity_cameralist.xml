@@ -1,10 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@drawable/bg"
+    android:orientation="vertical" >
+ <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" >
+
+        <Button
+            android:id="@+id/subscribeButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="onClick" 
+            android:textColor="#008080"
+            android:text="@string/subscribeButton" />
+
+        <Button
+            android:id="@+id/refreshButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="onClick"
+            android:textColor="#008080"
+            android:text="@string/refresh_button" />
+
+        <Button
+            android:id="@+id/list_back_Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="onClick"
+            android:textColor="#008080"
+            android:text="@string/back_button" />
+    </LinearLayout>
+    
+    <ExpandableListView
+        android:id="@+id/listView"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:background="@drawable/bg"
-        >
-        <ExpandableListView android:id="@+id/listView"
-                android:layout_width="fill_parent" android:layout_height="fill_parent" android:scrollbars="none"></ExpandableListView>
+        android:scrollbars="none" >
+    </ExpandableListView>
+
 </LinearLayout>
