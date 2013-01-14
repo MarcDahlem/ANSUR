@@ -62,5 +62,18 @@ public enum ConnectionEventType {
 	/** Exception message for the back way
 	 *  
 	 */
-	SERVER_EXCEPTION
+	SERVER_EXCEPTION,
+	
+	/** Client wants to download a movie
+	 * 
+	 * parameters (line)
+	 * 	1: filepath //TODO need to check if it is a recorder movie file AND if the user is allowed to read it
+	 * 
+	 * returns (line):
+	 * 	1: int filesize
+	 * 	2: String filename (without folders etc)
+	 * 	3: Bytestream of the file
+	 *  exception if file not existent, at the moment recording or another IO exception was thrown //TODO
+	 */
+	CLIENT_DOWNLOAD_MOTION
 }

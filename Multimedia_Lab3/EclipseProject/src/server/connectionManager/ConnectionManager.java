@@ -1,5 +1,8 @@
 package server.connectionManager;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -105,7 +108,10 @@ public class ConnectionManager {
 				//a client wants to get a list with all the cameras
 				this.clientGetAllCams(writer, scanner);
 				break;
-
+			case CLIENT_DOWNLOAD_MOTION:
+				// a client wants to download a movie
+				this.clientDownloadMotion(writer, out, scanner);
+				break;
 			default:
 				//unknown message received. 
 				writer.write(ConnectionEventType.SERVER_EXCEPTION+"\n");
@@ -128,6 +134,44 @@ public class ConnectionManager {
 		}
 	}
 
+	private void clientDownloadMotion(PrintWriter writer, OutputStream out, Scanner scanner) throws IOException {
+		// client wants to download a movie. Send it back
+		if (!scanner.hasNextLine()) {
+			writer.write((ConnectionEventType.SERVER_EXCEPTION+"\n"));
+			writer.flush();
+			throw new IOException("No filename followed the download motion command. Not conform to the specified protocol.");
+		}
+
+		String filename = scanner.nextLine();
+
+		//TODO checks
+		BufferedInputStream bin=null;
+
+		try{
+			File motionFile = new File (filename);
+			String motionFileName = motionFile.getName();
+			int fileLength = (int)motionFile.length();
+			byte [] bytearray  = new byte [fileLength];
+
+			FileInputStream fileInputStream = new FileInputStream(motionFile);
+			bin = new BufferedInputStream(fileInputStream);
+			bin.read(bytearray,0,bytearray.length);
+
+			//write filelength and filename
+			writer.write(fileLength+"\n");
+			writer.write(motionFileName+"\n");
+			writer.flush();
+			
+			//write motion file
+			out.write(bytearray,0,bytearray.length);
+			out.flush();
+		}finally {
+			if (bin!=null) {
+				bin.close();
+			}
+		}
+	}
+
 	private void clientGetAllCams(PrintWriter writer, Scanner scanner) throws IOException {
 		// a client wants to have all cameras registered
 		if (!scanner.hasNextLine()) {
@@ -137,12 +181,12 @@ public class ConnectionManager {
 		}
 		//first get the clients registration id
 		String regId = scanner.nextLine();
-		
+
 		//create the event and notify. After that should all motion recorders be added to the event and the names can be written to the writer
 		ConnectionEvent event = new ConnectionEvent(this, ConnectionEventType.CLIENT_GET_CAMS);
 		notifyConnectionEvent(event);
 		ArrayList<MotionRecorder> cams = event.getAllCameras();
-		
+
 		//first write the amount of cameras
 		writer.write(cams.size() + "\n");
 		//then all the recorder names
@@ -152,7 +196,7 @@ public class ConnectionManager {
 			writer.write(cam.getCameraName() + "\n");
 			writer.write(cam.getSubscriptionStatus(regId)+"\n");
 		}
-		
+
 		writer.flush();
 	}
 

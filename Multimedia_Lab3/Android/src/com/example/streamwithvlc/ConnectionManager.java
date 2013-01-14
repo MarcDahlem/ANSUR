@@ -1,10 +1,13 @@
 package com.example.streamwithvlc;
 
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Random;
@@ -136,8 +139,9 @@ public class ConnectionManager {
 		MainActivity.displayMessage(context, message);
 
 		ConnectionEventType type = ConnectionEventType.CLIENT_DEREGISTER;
+		
+		//unregister will also unsubscribe on the server side. dont need to think about it here
 
-		//TODO unsubscribe from all subscibed cameras
 		boolean success = postBooleanServerCommand(context, registrationId, type);
 		if (success) {
 			GCMRegistrar.setRegisteredOnServer(context, false);
@@ -391,6 +395,88 @@ public class ConnectionManager {
 			}
 		}
 
+	}
+	
+	
+	public static void downloadMotionRecord(Context context, String filename) throws UnknownHostException, IOException {
+		PrintWriter pw = null;
+		Scanner scanner = null;
+		Socket socket = null;
+		BufferedOutputStream bufferedOutputStream=null;
+		Log.i("ANSUR", "Trying to download movie...");
+		try {
+			//create a socket
+			socket = new Socket(MainActivity.HOSTNAME, MainActivity.PORT);
+			InputStream in = socket.getInputStream();
+			OutputStream out = socket.getOutputStream();
+			pw = new PrintWriter(out);
+
+			//Send the get unsubscribtion command like defined in the protocol
+			pw.write(ConnectionEventType.CLIENT_DOWNLOAD_MOTION.name()+"\n");
+			pw.write(filename+"\n");
+			pw.flush();
+
+			//then wait for the answer
+			scanner = new Scanner(in);
+			if (!scanner.hasNextLine()) {
+				String message = "Server did not answer!";
+				MainActivity.displayMessage(context, message);
+				throw new IOException(message);
+			}
+			
+			if (!scanner.hasNextInt()) {
+				String answer = scanner.nextLine();
+				if (ConnectionEventType.SERVER_EXCEPTION.name().equals(answer)) {
+					String message = "Server answered with an exception. Either IOException on the server side or filename not valid";
+					MainActivity.displayMessage(context, message);
+					throw new IOException(message);
+				} else {
+				String message = "Server answered not with the filesize, but with '" + answer+ "'! Not conform to the protocol.";
+				MainActivity.displayMessage(context, message);
+				throw new IOException(message);
+				}
+			}
+
+			int filesize = scanner.nextInt();
+			scanner.nextLine();
+			
+			//read file
+	        byte [] bytearray  = new byte [filesize];
+	        
+	        FileOutputStream fileOutputStream = new FileOutputStream(filename);
+	        bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
+	        
+	        for (int i=0;i<bytearray.length;i++) {
+	        	if (!scanner.hasNextByte()) {
+	        		String message = "Bytestream stopped at Byte " + (i+1) +"/"+bytearray.length+" before the file was fully received.";
+					MainActivity.displayMessage(context, message);
+					throw new IOException(message);
+	        	}
+	        	bytearray[i]=scanner.nextByte();
+	        }
+	 
+	        bufferedOutputStream.write(bytearray, 0 , bytearray.length);
+	        bufferedOutputStream.flush();
+			
+			
+		} finally {
+			//finally close all streams etc
+			if(pw!=null) {
+
+				pw.close();
+			}
+			if (scanner!=null) {
+				scanner.close();	
+			}
+			
+			if (bufferedOutputStream !=null) {
+				 bufferedOutputStream.close();
+			}
+			if (socket!=null){
+				socket.close();
+			}
+		}
+		
 	}
 
 }

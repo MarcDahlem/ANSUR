@@ -701,14 +701,14 @@ public class Gui {
 
 			@Override
 			public void run() {
+				//stop the server
+				Gui.this.stopServer();
 				MessageBox msgBox = new MessageBox(Gui.this.display.getShells()[0], SWT.OK|SWT.ERROR);
 				msgBox.setMessage("Error whith the tcp sockets:'" + e.getMessage()+ "'.");
 				msgBox.setText("Error");
 				msgBox.open();
 			}
 		});
-		//stop the server
-		Gui.this.stopServer();
 	}
 
 	/** Adds prefernce buttons to the given composite
