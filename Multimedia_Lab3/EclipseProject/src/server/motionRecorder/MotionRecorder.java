@@ -3,9 +3,13 @@
  */
 package server.motionRecorder;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import javax.swing.event.EventListenerList;
@@ -23,6 +27,10 @@ import org.gstreamer.Pad.EVENT_PROBE;
 import org.gstreamer.Pipeline;
 import org.gstreamer.event.EOSEvent;
 import org.gstreamer.swt.VideoComponent;
+
+import server.connectionManager.GCMManager;
+
+import commonUtility.GcmMessages;
 
 /**
  * @author marc
@@ -110,6 +118,60 @@ public class MotionRecorder {
 			l.eventAppeared(event);
 			System.out.println(event.getEventType().name() + " (" + event.getGstSource().getName() + "): " +event.getMessage());
 		}
+
+		//inform all subscribed apps
+		switch (event.getEventType()) {
+		case MOTION_START: {
+			Map<String, String> data = new TreeMap<String,String>();
+			data.put(GcmMessages.COMMAND, GcmMessages.GCMCOMMAND.MOTION_START.name());
+			data.put(GcmMessages.ROOM_NAME, this.roomName);
+			data.put(GcmMessages.CAMERA_NAME, this.camerName);
+			data.put(GcmMessages.PORT, this.port+"");
+			data.put(GcmMessages.FILE_PATH, event.getFilePath());
+			try {
+				GCMManager.sendToDevices(new LinkedList<String>(this.registeredGCMs), data);
+			} catch (IOException e) {
+				this.handleGCMError(e);
+			}
+			break;
+		}
+		case MOTION_END: {
+			Map<String, String> data = new TreeMap<String,String>();
+			data.put(GcmMessages.COMMAND, GcmMessages.GCMCOMMAND.MOTION_END.name());
+			data.put(GcmMessages.ROOM_NAME, this.roomName);
+			data.put(GcmMessages.CAMERA_NAME, this.camerName);
+			data.put(GcmMessages.PORT, this.port+"");
+			data.put(GcmMessages.FILE_PATH, event.getFilePath());
+			try {
+				GCMManager.sendToDevices(new LinkedList<String>(this.registeredGCMs), data);
+			} catch (IOException e) {
+				this.handleGCMError(e);
+			}
+			break;
+		}
+		case STOP:{
+			Map<String, String> data = new TreeMap<String,String>();
+			data.put(GcmMessages.COMMAND, GcmMessages.GCMCOMMAND.CAMERA_DOWN.name());
+			data.put(GcmMessages.ROOM_NAME, this.roomName);
+			data.put(GcmMessages.CAMERA_NAME, this.camerName);
+			data.put(GcmMessages.PORT, this.port+"");
+			try {
+				GCMManager.sendToDevices(new LinkedList<String>(this.registeredGCMs), data);
+			} catch (IOException e) {
+				this.handleGCMError(e);
+			}
+			break;
+		}
+		default:
+			//nothing to notify the clients about
+		}
+	}
+
+	private void handleGCMError(IOException e) {
+		MotionRecorderEvent event = new MotionRecorderEvent(this, null, MotionRecorderEventType.CONNECTION_ERROR, "GCM connection failed. See attached ioException", "");
+		event.setException(e);
+		notifyPipelineEvent(event);
+		
 	}
 
 	/**
@@ -166,7 +228,7 @@ public class MotionRecorder {
 
 			@Override
 			public void errorMessage(GstObject source, int code, String message) {
-				MotionRecorderEvent event = new MotionRecorderEvent(MotionRecorder.this, source, MotionRecorderEventType.GST_ERROR, message);
+				MotionRecorderEvent event = new MotionRecorderEvent(MotionRecorder.this, source, MotionRecorderEventType.GST_ERROR, message, "");
 				MotionRecorder.this.notifyPipelineEvent(event);
 				MotionRecorder.this.stop();
 			}
@@ -177,7 +239,7 @@ public class MotionRecorder {
 
 			@Override
 			public void infoMessage(GstObject source, int code, String message) {
-				MotionRecorderEvent event = new MotionRecorderEvent(MotionRecorder.this, source, MotionRecorderEventType.GST_INFO, message);
+				MotionRecorderEvent event = new MotionRecorderEvent(MotionRecorder.this, source, MotionRecorderEventType.GST_INFO, message,"");
 				MotionRecorder.this.notifyPipelineEvent(event);
 			}
 		});
@@ -187,7 +249,7 @@ public class MotionRecorder {
 
 			@Override
 			public void warningMessage(GstObject source, int code, String message) {
-				MotionRecorderEvent event = new MotionRecorderEvent(MotionRecorder.this, source, MotionRecorderEventType.GST_WARNING, message);
+				MotionRecorderEvent event = new MotionRecorderEvent(MotionRecorder.this, source, MotionRecorderEventType.GST_WARNING, message,"");
 				MotionRecorder.this.notifyPipelineEvent(event);
 			}
 		});
@@ -203,7 +265,7 @@ public class MotionRecorder {
 				if (!this.reantrance) {
 					this.reantrance=true;
 					MotionRecorder.this.stop();
-					MotionRecorderEvent event = new MotionRecorderEvent(MotionRecorder.this, source, MotionRecorderEventType.STOP, "EOS detected");
+					MotionRecorderEvent event = new MotionRecorderEvent(MotionRecorder.this, source, MotionRecorderEventType.STOP, "EOS detected","");
 					MotionRecorder.this.notifyPipelineEvent(event);
 				}
 			}
@@ -305,13 +367,13 @@ public class MotionRecorder {
 					this.currentFileName = fullFileName;
 					MotionRecorder.this.startRec(fullFileName);
 
-					MotionRecorderEvent event = new MotionRecorderEvent(MotionRecorder.this, motionDetection, MotionRecorderEventType.MOTION_START, fullFileName);
+					MotionRecorderEvent event = new MotionRecorderEvent(MotionRecorder.this, motionDetection, MotionRecorderEventType.MOTION_START, fullFileName, fullFileName);
 					MotionRecorder.this.notifyPipelineEvent(event);
 
 				}else {
 					System.out.println("Motion end detected on port " + MotionRecorder.this.port);
 					MotionRecorder.this.stopRec(false);
-					MotionRecorderEvent event = new MotionRecorderEvent(MotionRecorder.this, motionDetection, MotionRecorderEventType.MOTION_END, this.currentFileName);
+					MotionRecorderEvent event = new MotionRecorderEvent(MotionRecorder.this, motionDetection, MotionRecorderEventType.MOTION_END, this.currentFileName, this.currentFileName);
 					MotionRecorder.this.notifyPipelineEvent(event);
 				}
 				motionStart = !motionStart;
@@ -548,11 +610,11 @@ public class MotionRecorder {
 		String name = this.camerName + " in " + this.roomName + " (port " + this.port+ ")";
 		return name;
 	}
-	
+
 	public String getRoomName() {
 		return this.roomName;
 	}
-	
+
 	public String getCameraName() {
 		return this.camerName;
 	}
@@ -565,7 +627,7 @@ public class MotionRecorder {
 	public void deregisterGCM(String gcm) {
 		// delete this gcm from the registered clients
 		this.registeredGCMs.remove(gcm);
-		
+
 	}
 
 	public int getPort() {

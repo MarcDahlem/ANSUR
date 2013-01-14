@@ -1,4 +1,3 @@
-App: subscribe/unsubscribe
 Server: send notification with movie-id
 App&Server: send Movie over movie-id
 Server: send shutdown event

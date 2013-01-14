@@ -6,5 +6,6 @@ public enum MotionRecorderEventType {
 	GST_INFO,
 	STOP,
 	MOTION_START,
-	MOTION_END
+	MOTION_END,
+	CONNECTION_ERROR
 }

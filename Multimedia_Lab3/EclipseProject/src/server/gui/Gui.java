@@ -263,6 +263,12 @@ public class Gui {
 						}
 					});
 					break;
+				case CONNECTION_ERROR:
+					// error occured during the GCM transaction
+					//handle it
+					IOException e = event.getException();
+					Gui.this.handleConnectionError(e);
+					break;
 				default:
 					Gui.this.display.asyncExec(new Runnable() {
 
