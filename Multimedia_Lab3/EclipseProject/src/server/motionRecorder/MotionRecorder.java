@@ -149,6 +149,7 @@ public class MotionRecorder {
 			}
 			break;
 		}
+		
 		case STOP:{
 			Map<String, String> data = new TreeMap<String,String>();
 			data.put(GcmMessages.COMMAND, GcmMessages.GCMCOMMAND.CAMERA_DOWN.name());

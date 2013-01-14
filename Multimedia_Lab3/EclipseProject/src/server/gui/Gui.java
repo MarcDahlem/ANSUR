@@ -14,6 +14,9 @@ package server.gui;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 
@@ -46,9 +49,11 @@ import org.gstreamer.GstObject;
 import org.gstreamer.swt.VideoComponent;
 
 import commonUtility.ConnectionEventType;
+import commonUtility.GcmMessages;
 
 import server.connectionManager.ConnectionEvent;
 import server.connectionManager.ConnectionListener;
+import server.connectionManager.GCMManager;
 import server.connectionManager.ServerConnectionManager;
 import server.motionRecorder.MotionRecorder;
 import server.motionRecorder.MotionRecorderEvent;
@@ -1043,6 +1048,14 @@ public class Gui {
 			}
 		}
 
+		//inform all registered clients about the shutdown
+		Map<String, String> data = new TreeMap<String,String>();
+		data.put(GcmMessages.COMMAND, GcmMessages.GCMCOMMAND.SERVER_SHUTDOWN.name());
+		try {
+			GCMManager.sendToDevices(new LinkedList<String>(this.gcmSet), data);
+		} catch (IOException e) {
+			this.handleConnectionError(e);
+		}
 		//stop all pipelines
 		for (MotionRecorder rec:this.pipeList) {
 			rec.stop();
