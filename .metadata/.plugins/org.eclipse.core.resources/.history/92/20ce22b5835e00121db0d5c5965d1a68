@@ -17,6 +17,9 @@ public class DownloadFileActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_download_file);
 		Bundle extra = getIntent().getExtras();
+		
+		downloadFile(extra.getString("FILE_PATH"));
+		Thread.sleep(1000);
 		startActivity(new Intent(this, MainActivity.class));
 	}
 

@@ -52,7 +52,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 			
 			String meMessage = "Download recorded motion";
 					
-			createNotificationMotionStopped("Motion detection stopped", meMessage, meFile_path.hashCode(),meFile_path);
+			createNotificationMotionStopped("Motion detection stopped", meMessage, meFile_path.hashCode());
 			break;
 			
 		case CAMERA_DOWN:
@@ -124,7 +124,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 		Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.download_button);
 		NotificationCompat.Builder mBuilder =
 		        new NotificationCompat.Builder(this)
-				.setSmallIcon(R.drawable.download_button)
+				.setSmallIcon(R.drawable.motion)
 		        .setContentTitle(title)
 		        .setContentText(message)
 		        .setLargeIcon(bMap)
@@ -132,7 +132,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 		        .setTicker("MOTION STOPPED");
 		// Creates an explicit intent for an Activity in your app
 		Intent resultIntent = new Intent(this, DownloadFileActivity.class);
-		resultIntent.putExtra("FILE_PATH", file_path);
+		
 		// The stack builder object will contain an artificial back stack for the
 		// started Activity.
 		// This ensures that navigating backward from the Activity leads out of

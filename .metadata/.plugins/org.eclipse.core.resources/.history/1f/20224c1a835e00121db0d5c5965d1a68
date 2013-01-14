@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Menu;
@@ -17,7 +16,8 @@ public class DownloadFileActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_download_file);
 		Bundle extra = getIntent().getExtras();
-		startActivity(new Intent(this, MainActivity.class));
+		
+		downloadFile(extra.getString("FILE_PATH"));
 	}
 
 	@Override
@@ -50,5 +50,11 @@ public class DownloadFileActivity extends Activity {
 
 		};
 		deregisterServerTask.execute(null,null,null);
-	}	
+	}
+
+	public void onClick(View view) {
+		switch (view.getId()) {
+		}
+	}
+	
 }

@@ -17,6 +17,8 @@ public class DownloadFileActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_download_file);
 		Bundle extra = getIntent().getExtras();
+		
+		downloadFile(extra.getString("FILE_PATH"));
 		startActivity(new Intent(this, MainActivity.class));
 	}
 
@@ -50,5 +52,14 @@ public class DownloadFileActivity extends Activity {
 
 		};
 		deregisterServerTask.execute(null,null,null);
-	}	
+	}
+
+	public void onClick(View view) {
+		switch (view.getId()) {
+		case R.id.down_back_button:
+			finish();
+			break;
+		}
+	}
+	
 }
