@@ -1,6 +1,7 @@
 package com.example.streamwithvlc;
 
 import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -139,7 +140,7 @@ public class ConnectionManager {
 		MainActivity.displayMessage(context, message);
 
 		ConnectionEventType type = ConnectionEventType.CLIENT_DEREGISTER;
-		
+
 		//unregister will also unsubscribe on the server side. dont need to think about it here
 
 		boolean success = postBooleanServerCommand(context, registrationId, type);
@@ -396,8 +397,8 @@ public class ConnectionManager {
 		}
 
 	}
-	
-	
+
+
 	public static void downloadMotionRecord(Context context, String filename) throws UnknownHostException, IOException {
 		PrintWriter pw = null;
 		Scanner scanner = null;
@@ -423,7 +424,7 @@ public class ConnectionManager {
 				MainActivity.displayMessage(context, message);
 				throw new IOException(message);
 			}
-			
+
 			if (!scanner.hasNextInt()) {
 				String answer = scanner.nextLine();
 				if (ConnectionEventType.SERVER_EXCEPTION.name().equals(answer)) {
@@ -431,34 +432,46 @@ public class ConnectionManager {
 					MainActivity.displayMessage(context, message);
 					throw new IOException(message);
 				} else {
-				String message = "Server answered not with the filesize, but with '" + answer+ "'! Not conform to the protocol.";
-				MainActivity.displayMessage(context, message);
-				throw new IOException(message);
+					String message = "Server answered not with the filesize, but with '" + answer+ "'! Not conform to the protocol.";
+					MainActivity.displayMessage(context, message);
+					throw new IOException(message);
 				}
 			}
 
 			int filesize = scanner.nextInt();
 			scanner.nextLine();
-			
-			//read file
-	        byte [] bytearray  = new byte [filesize];
-	        
-	        FileOutputStream fileOutputStream = new FileOutputStream(filename);
-	        bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
-	        
-	        for (int i=0;i<bytearray.length;i++) {
-	        	if (!scanner.hasNextByte()) {
-	        		String message = "Bytestream stopped at Byte " + (i+1) +"/"+bytearray.length+" before the file was fully received.";
+
+			if (!scanner.hasNextLine()) {
+				String message = "Server did not send the filename! Not conform to the protocol.";
+				MainActivity.displayMessage(context, message);
+				throw new IOException(message);
+			}
+
+			String newFilename = scanner.nextLine();
+
+
+			//read the file itself
+			byte [] bytearray  = new byte [filesize];
+
+			File file=new File(newFilename);
+			Log.i("ANSUR.Connection", "Trying to receive file to " +
+					file.getAbsolutePath());
+			FileOutputStream fileOutputStream = new FileOutputStream(file);
+			bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
+
+			for (int i=0;i<bytearray.length;i++) {
+				if (!scanner.hasNextByte()) {
+					String message = "Bytestream stopped at Byte " + (i+1) +"/"+bytearray.length+" before the file was fully received.";
 					MainActivity.displayMessage(context, message);
 					throw new IOException(message);
-	        	}
-	        	bytearray[i]=scanner.nextByte();
-	        }
-	 
-	        bufferedOutputStream.write(bytearray, 0 , bytearray.length);
-	        bufferedOutputStream.flush();
-			
-			
+				}
+				bytearray[i]=scanner.nextByte();
+			}
+
+			bufferedOutputStream.write(bytearray, 0 , bytearray.length);
+			bufferedOutputStream.flush();
+
+
 		} finally {
 			//finally close all streams etc
 			if(pw!=null) {
@@ -468,15 +481,15 @@ public class ConnectionManager {
 			if (scanner!=null) {
 				scanner.close();	
 			}
-			
+
 			if (bufferedOutputStream !=null) {
-				 bufferedOutputStream.close();
+				bufferedOutputStream.close();
 			}
 			if (socket!=null){
 				socket.close();
 			}
 		}
-		
+
 	}
 
 }
