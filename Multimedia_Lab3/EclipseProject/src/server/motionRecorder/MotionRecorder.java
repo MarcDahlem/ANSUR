@@ -576,4 +576,8 @@ public class MotionRecorder {
 		this.registeredGCMs.add(gcm);
 	}
 
+	public boolean getSubscriptionStatus(String regId) {
+		return this.registeredGCMs.contains(regId);
+	}
+
 }

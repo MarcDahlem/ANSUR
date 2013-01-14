@@ -24,7 +24,8 @@ import com.google.android.gcm.GCMRegistrar;
 public class MainActivity extends Activity {
 
 	public static final String SENDER_ID = "862106151827";
-	public static String HOSTNAME = "192.168.37.36";
+	//public static String HOSTNAME = "192.168.37.36";
+	public static String HOSTNAME = "130.240.93.97";
 	public static int PORT = 5000;
 	private AsyncTask<Void, Void, Void> registerTask;
 	/**
