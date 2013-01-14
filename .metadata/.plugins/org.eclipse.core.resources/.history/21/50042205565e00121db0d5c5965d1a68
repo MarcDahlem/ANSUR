@@ -25,6 +25,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 
 	@Override
 	protected void onMessage(Context context, Intent intent) {
+		// TODO Auto-generated method stub
 		Bundle extras = intent.getExtras(); 
 		String msg = extras.getString("COMMAND");
 
@@ -46,20 +47,14 @@ public class GCMIntentService extends GCMBaseIntentService {
 			String meCamera_name = extras.getString("CAMERA_NAME");
 			String meRoom_name = extras.getString("ROOM_NAME");
 			String mePort = extras.getString("PORT");
-			
-			String meMessage = "The motion that was detected on " + meCamera_name + " in the room " + meRoom_name + " has stopped. Click here to download video";
-					
-			createNotificationMotionStopped("Motion has stopped", meMessage, meFile_path.hashCode());
+			createNotificationMotionStopped("Motion has stopped", "Motion that was detected can be downloaded here", meFile_path.hashCode());
 			break;
 			
 		case CAMERA_DOWN:
 			String cdCamera_name = extras.getString("CAMERA_NAME");
 			String cdRoom_name = extras.getString("ROOM_NAME");
 			String cdPort = extras.getString("PORT");
-			
-			String cdMessage = "Camera on port: " + cdPort + " was disconnected";
-			
-			createNotificationCameraStopped("Lost camera", cdMessage, cdPort.hashCode());
+			createNotificationCameraStopped("Lost camera", "Camera on port: " + cdPort + " was disconnected", cdPort.hashCode());
 			break;
 			
 		case SERVER_SHUTDOWN:

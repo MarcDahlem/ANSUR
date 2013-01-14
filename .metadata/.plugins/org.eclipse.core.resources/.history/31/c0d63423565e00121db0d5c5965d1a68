@@ -25,6 +25,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 
 	@Override
 	protected void onMessage(Context context, Intent intent) {
+		// TODO Auto-generated method stub
 		Bundle extras = intent.getExtras(); 
 		String msg = extras.getString("COMMAND");
 

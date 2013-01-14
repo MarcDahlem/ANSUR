@@ -22,6 +22,7 @@ INDEX VERSION 1.126+C:\Users\Tjarb\Desktop\Skole\LTU\Multimedia\ANSUR\.metadata\
 3974580528.index
 1506905042.index
 1995173708.index
+2037853490.index
 1115467115.index
 3133528496.index
 1594874507.index

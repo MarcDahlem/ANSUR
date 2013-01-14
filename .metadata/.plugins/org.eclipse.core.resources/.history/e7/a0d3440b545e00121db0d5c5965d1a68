@@ -25,41 +25,27 @@ public class GCMIntentService extends GCMBaseIntentService {
 
 	@Override
 	protected void onMessage(Context context, Intent intent) {
+		// TODO Auto-generated method stub
 		Bundle extras = intent.getExtras(); 
 		String msg = extras.getString("COMMAND");
 
 		String content;
+		String roomName, cameraName;
 		switch(GcmMessages.GCMCOMMAND.valueOf(msg)){
 		case MOTION_START:
-			String msFile_path = extras.getString("FILE_PATH");
-			String msCamera_name = extras.getString("CAMERA_NAME");
-			String msRoom_name = extras.getString("ROOM_NAME");
-			String msPort = extras.getString("PORT");
-			
-			String msMessage = "There has been detected a motion on " + msCamera_name + " in the room " + msRoom_name;
-			
-			createNotificationMotionDetected("A motion is detected", msMessage, msFile_path.hashCode());
+			String file_path = extras.getString("FILE_PATH");
+			String roomName = 
+			createNotificationMotionDetected("A motion is detected", "There has been detected a motion on camera 1", content.hashCode());
 			break;
 			
 		case MOTION_END:
-			String meFile_path = extras.getString("FILE_PATH");
-			String meCamera_name = extras.getString("CAMERA_NAME");
-			String meRoom_name = extras.getString("ROOM_NAME");
-			String mePort = extras.getString("PORT");
-			
-			String meMessage = "The motion that was detected on " + meCamera_name + " in the room " + meRoom_name + " has stopped. Click here to download video";
-					
-			createNotificationMotionStopped("Motion has stopped", meMessage, meFile_path.hashCode());
+			content = extras.getString("FILE_PATH");
+			createNotificationMotionStopped("Motion has stopped", "Motion that was detected can be downloaded here", content.hashCode());
 			break;
 			
 		case CAMERA_DOWN:
-			String cdCamera_name = extras.getString("CAMERA_NAME");
-			String cdRoom_name = extras.getString("ROOM_NAME");
-			String cdPort = extras.getString("PORT");
-			
-			String cdMessage = "Camera on port: " + cdPort + " was disconnected";
-			
-			createNotificationCameraStopped("Lost camera", cdMessage, cdPort.hashCode());
+			content = extras.getString("PORT");
+			createNotificationCameraStopped("Lost camera", "Camera on port: " + content + " was disconnected", content.hashCode());
 			break;
 			
 		case SERVER_SHUTDOWN:
@@ -87,16 +73,16 @@ public class GCMIntentService extends GCMBaseIntentService {
 		TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
 		
 		// Adds the back stack for the Intent (but not the Intent itself)
-		stackBuilder = stackBuilder.addParentStack(MainActivity.class);
+		stackBuilder.addParentStack(MainActivity.class);
 		
 		// Adds the Intent that starts the Activity to the top of the stack
-		stackBuilder = stackBuilder.addNextIntent(launchApplication());
+		stackBuilder.addNextIntent(launchApplication());
 		PendingIntent resultPendingIntent =
 		        stackBuilder.getPendingIntent(
 		            0,
 		            PendingIntent.FLAG_UPDATE_CURRENT
 		        );
-		mBuilder = mBuilder.setContentIntent(resultPendingIntent);
+		mBuilder.setContentIntent(resultPendingIntent);
 		NotificationManager mNotificationManager =
 		    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 		

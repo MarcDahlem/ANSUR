@@ -25,6 +25,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 
 	@Override
 	protected void onMessage(Context context, Intent intent) {
+		// TODO Auto-generated method stub
 		Bundle extras = intent.getExtras(); 
 		String msg = extras.getString("COMMAND");
 
@@ -56,10 +57,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 			String cdCamera_name = extras.getString("CAMERA_NAME");
 			String cdRoom_name = extras.getString("ROOM_NAME");
 			String cdPort = extras.getString("PORT");
-			
-			String cdMessage = "Camera on port: " + cdPort + " was disconnected";
-			
-			createNotificationCameraStopped("Lost camera", cdMessage, cdPort.hashCode());
+			createNotificationCameraStopped("Lost camera", "Camera on port: " + cdPort + " was disconnected", cdPort.hashCode());
 			break;
 			
 		case SERVER_SHUTDOWN:
