@@ -2,16 +2,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg"
     tools:context=".DownloadFileActivity" >
 
     <TextView
-        android:id="@+id/textViewDownloading"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="164dp"
-        android:text="@string/Downloading_movie" />
+        android:layout_centerVertical="true"
+        android:text="@string/hello_world" />
 
 </RelativeLayout>

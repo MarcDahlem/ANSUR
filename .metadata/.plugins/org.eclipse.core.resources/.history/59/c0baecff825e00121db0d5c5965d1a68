@@ -5,6 +5,14 @@
     android:background="@drawable/bg"
     tools:context=".DownloadFileActivity" >
 
+    <Button
+        android:id="@+id/down_back_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/textView1"
+        android:layout_centerHorizontal="true"
+        android:text="@string/back_button" />
+
     <TextView
         android:id="@+id/textViewDownloading"
         android:layout_width="wrap_content"

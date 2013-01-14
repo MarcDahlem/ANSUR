@@ -41,7 +41,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 			
 			String msMessage = "Cam: " + msCamera_name + " in: " + msRoom_name;
 			
-			createNotificationMotionDetected("Motion Detected on", msMessage, msFile_path.hashCode());
+			createNotificationMotionDetected("Motion Detected on", msMessage, msFile_path.hashCode(),msPort);
 			break;
 			
 		case MOTION_END:
@@ -73,7 +73,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 	}
 
 	
-	public void createNotificationMotionDetected(String title, String message, int notificationID) {
+	public void createNotificationMotionDetected(String title, String message, int notificationID, String port) {
 		
 		Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.motion);
 		
@@ -112,7 +112,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 		
 		ClipboardManager clipboard = (ClipboardManager)
 		        getSystemService(Context.CLIPBOARD_SERVICE);
-		ClipData clip = ClipData.newPlainText("Server","tcp://"+MainActivity.HOSTNAME+":"+MainActivity.PORT);
+		ClipData clip = ClipData.newPlainText("Server","tcp://"+MainActivity.HOSTNAME+":"+port);
 		
 		clipboard.setPrimaryClip(clip);
 		
@@ -124,7 +124,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 		Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.download_button);
 		NotificationCompat.Builder mBuilder =
 		        new NotificationCompat.Builder(this)
-				.setSmallIcon(R.drawable.download_button)
+				.setSmallIcon(R.drawable.motion)
 		        .setContentTitle(title)
 		        .setContentText(message)
 		        .setLargeIcon(bMap)
