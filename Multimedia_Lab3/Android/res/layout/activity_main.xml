@@ -36,14 +36,6 @@
             android:text="@string/dConnectButton"
             android:textColor="#008080" />
          
-         
-         <Button
-            android:id="@+id/downloadButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="onClick"
-            android:text="Download movie"
-            android:textColor="#008080" />
     </LinearLayout>
 
 </RelativeLayout>
