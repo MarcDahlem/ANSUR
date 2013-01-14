@@ -15,7 +15,7 @@
         android:text="@string/Downloading_movie" />
 
     <VideoView
-        android:id="@+id/motionVideoView2"
+        android:id="@+id/motionVideoView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
@@ -29,6 +29,7 @@
         android:layout_below="@+id/textViewDownloading"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="18dp"
+        android:onClick="onClick"
         android:text="Play Movie" />
 
 </RelativeLayout>

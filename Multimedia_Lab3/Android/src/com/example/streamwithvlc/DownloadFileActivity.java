@@ -10,21 +10,31 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
+import android.widget.Button;
 import android.widget.MediaController;
 import android.widget.Toast;
 import android.widget.VideoView;
 
 public class DownloadFileActivity extends Activity {
-
+	String movie_name = "";
+	Button playMovie;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		registerReceiver(mHandleMessageReceiver,new IntentFilter(MainActivity.TOAST_MESSAGE_ACTION));
 		setContentView(R.layout.activity_download_file);
+		
+		//Get filePath
 		Bundle extra = getIntent().getExtras();
-		downloadFile(extra.getString("FILE_PATH"));
+		String file_path = extra.getString("FILE_PATH");
+		
+		//Disable the button, so that it can't be pressed before the movie is downloaded
+		playMovie = (Button)findViewById(R.id.playMovieButton);
+		playMovie.setEnabled(false);
+		downloadFile(file_path);
 	}
 
 	@Override
@@ -47,7 +57,9 @@ public class DownloadFileActivity extends Activity {
 			@Override
 			protected Void doInBackground(Void... params) {
 				try {
-					AppConnectionManager.downloadMotionRecord(getApplicationContext(), file_path);
+					//Get movie name and endable button
+					movie_name = AppConnectionManager.downloadMotionRecord(getApplicationContext(), file_path);
+					playMovie.setEnabled(true);
 				} catch (UnknownHostException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -82,12 +94,9 @@ public class DownloadFileActivity extends Activity {
 	}
 	
 	public void playMovie(){
-		Bundle extras = getIntent().getExtras();
-		
-		String filePath = extras.getString("MOVIE_PATH");
 		MediaController mc;
-		VideoView videoView = (VideoView) findViewById(R.id.motionVideoView2);
-		videoView.setVideoPath(filePath);
+		VideoView videoView = (VideoView) findViewById(R.id.motionVideoView);
+		videoView.setVideoPath("/storage/sdcard0/Android/data/com.example.streamwithvlc/files/"+movie_name);
 		mc = new MediaController(this);
 		videoView.setMediaController(mc);
 		videoView.start();

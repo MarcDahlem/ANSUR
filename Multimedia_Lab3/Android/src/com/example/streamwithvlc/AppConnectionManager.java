@@ -401,7 +401,7 @@ public class AppConnectionManager {
 	}
 
 
-	public static void downloadMotionRecord(final Context context, String filename) throws UnknownHostException, IOException {
+	public static String downloadMotionRecord(final Context context, String filename) throws UnknownHostException, IOException {
 		PrintWriter pw = null;
 		Scanner scanner = null;
 		Socket socket = null;
@@ -480,7 +480,7 @@ public class AppConnectionManager {
 				}
 			}).start();
 
-
+			return newFilename;
 		} finally {
 			//finally close all streams etc
 			if(pw!=null) {
@@ -494,7 +494,7 @@ public class AppConnectionManager {
 				socket.close();
 			}
 		}
-
+		
 	}
 
 	private static void startRealDownload(int downloadPort, Context context, int filesize, String filename) throws IOException {

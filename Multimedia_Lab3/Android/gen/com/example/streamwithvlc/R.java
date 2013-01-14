@@ -24,25 +24,24 @@ public final class R {
         public static final int motion_detected=0x7f020005;
     }
     public static final class id {
-        public static final int ServerhostNameField=0x7f08000c;
-        public static final int camCheckbox=0x7f080011;
-        public static final int camname=0x7f080010;
+        public static final int ServerhostNameField=0x7f08000b;
+        public static final int camCheckbox=0x7f080010;
+        public static final int camname=0x7f08000f;
         public static final int connectButton=0x7f080007;
         public static final int dConnectButton=0x7f080009;
         public static final int downloadButton=0x7f08000a;
         public static final int listView=0x7f080003;
         public static final int list_back_Button=0x7f080002;
-        public static final int menu_settings=0x7f080014;
-        public static final int motionVideoView=0x7f08000b;
-        public static final int motionVideoView2=0x7f080005;
+        public static final int menu_settings=0x7f080013;
+        public static final int motionVideoView=0x7f080005;
         public static final int playMovieButton=0x7f080006;
         public static final int refreshButton=0x7f080001;
-        public static final int roomCheckbox=0x7f080013;
-        public static final int roomName=0x7f080012;
-        public static final int save_settings_button=0x7f08000e;
-        public static final int serverPortField=0x7f08000d;
-        public static final int settings=0x7f080015;
-        public static final int settings_back_button=0x7f08000f;
+        public static final int roomCheckbox=0x7f080012;
+        public static final int roomName=0x7f080011;
+        public static final int save_settings_button=0x7f08000d;
+        public static final int serverPortField=0x7f08000c;
+        public static final int settings=0x7f080014;
+        public static final int settings_back_button=0x7f08000e;
         public static final int startButton=0x7f080008;
         public static final int subscribeButton=0x7f080000;
         public static final int textViewDownloading=0x7f080004;
@@ -51,10 +50,9 @@ public final class R {
         public static final int activity_cameralist=0x7f030000;
         public static final int activity_download_file=0x7f030001;
         public static final int activity_main=0x7f030002;
-        public static final int activity_play_motion_movie=0x7f030003;
-        public static final int activity_settings=0x7f030004;
-        public static final int camrow=0x7f030005;
-        public static final int roomrow=0x7f030006;
+        public static final int activity_settings=0x7f030003;
+        public static final int camrow=0x7f030004;
+        public static final int roomrow=0x7f030005;
     }
     public static final class menu {
         public static final int activity_download_file=0x7f070000;
