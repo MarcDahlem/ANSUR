@@ -180,8 +180,8 @@ public class ServerConnectionManager {
 
 	public void startMotionTransport(int transportPort, File motionFile, int fileLength) throws IOException {
 		ServerSocket downloadServerSocket = null;
-		this.transportSockets.add(downloadServerSocket);
 		Socket transportSocket=null;
+		
 		try{
 			downloadServerSocket = new ServerSocket(transportPort);
 			this.transportSockets.add(downloadServerSocket);
@@ -198,7 +198,7 @@ public class ServerConnectionManager {
 				bin = new BufferedInputStream(fileInputStream);
 				bin.read(bytearray,0,bytearray.length);
 				//write motion file
-				out.write(bytearray);
+				out.write(bytearray, 0, bytearray.length);
 				out.flush();
 
 			} finally {

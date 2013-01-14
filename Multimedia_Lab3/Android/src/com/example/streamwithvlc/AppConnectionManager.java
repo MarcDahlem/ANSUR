@@ -487,7 +487,7 @@ public class AppConnectionManager {
 			if (scanner!=null) {
 				scanner.close();	
 			}
-			
+
 			if (socket!=null){
 				socket.close();
 			}
@@ -503,7 +503,7 @@ public class AppConnectionManager {
 			//create a socket
 			socket = new Socket(MainActivity.HOSTNAME, downloadPort);
 			in = socket.getInputStream();
-			
+
 			//read the file itself
 			byte [] bytearray  = new byte [filesize];
 			Log.i("ANSUR", "File dir: " + context.getFilesDir().toString());
@@ -517,7 +517,15 @@ public class AppConnectionManager {
 
 
 
-			int result = in.read(bytearray);
+			int bytesRead = -5;
+			int result = 0;
+			do {
+				bytesRead = in.read(bytearray, result, (bytearray.length-result));
+				if(bytesRead >= 0) {
+					result += bytesRead;
+				}
+			} while(bytesRead > -1);
+
 
 			if (result!=filesize) {
 				String message = "Downloading error. Received bytes = " + result + ", expected bytes =" +filesize+".";
@@ -541,7 +549,7 @@ public class AppConnectionManager {
 			if (bufferedOutputStream !=null) {
 				bufferedOutputStream.close();
 			}
-			
+
 			if (in!=null) {
 				in.close();
 			}
