@@ -501,7 +501,7 @@ public class AppConnectionManager {
 		InputStream in = null;
 		try{
 			//create a socket
-			socket = new Socket(MainActivity.HOSTNAME, MainActivity.PORT);
+			socket = new Socket(MainActivity.HOSTNAME, downloadPort);
 			in = socket.getInputStream();
 			
 			//read the file itself

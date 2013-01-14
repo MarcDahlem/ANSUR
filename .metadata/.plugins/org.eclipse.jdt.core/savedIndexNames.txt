@@ -1,5 +1,4 @@
 INDEX VERSION 1.126+C:\Users\Tjarb\Desktop\Skole\LTU\Multimedia\ANSUR\.metadata\.plugins\org.eclipse.jdt.core
-2037853490.index
 2810307081.index
 3223308061.index
 2012465977.index

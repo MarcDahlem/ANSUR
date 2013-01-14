@@ -83,7 +83,7 @@ public class MainActivity extends Activity {
 
 					@Override
 					protected Void doInBackground(Void... params) {
-						boolean registered = ConnectionManager.register(context, regId);
+						boolean registered = AppConnectionManager.register(context, regId);
 						// At this point all attempts to register with the app
 						// server failed, so we need to unregister the device
 						// from GCM - the app will try to register again when
@@ -125,7 +125,7 @@ public class MainActivity extends Activity {
 
 					@Override
 					protected Void doInBackground(Void... params) {
-						ConnectionManager.unregister(context, regId);
+						AppConnectionManager.unregister(context, regId);
 						return null;
 					}
 
@@ -211,7 +211,7 @@ public class MainActivity extends Activity {
 					@Override
 					protected Void doInBackground(Void... params) {
 						try {
-							ConnectionManager.downloadMotionRecord(getApplicationContext(), "/home/marc/Arbeitsfläche/2012_01_11_hospital_invoice_krankenkasse");
+							AppConnectionManager.downloadMotionRecord(getApplicationContext(), "/home/marc/Arbeitsfläche/2012_01_11_hospital_invoice_krankenkasse");
 						} catch (UnknownHostException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
