@@ -18,8 +18,9 @@ public final class R {
     public static final class drawable {
         public static final int bg=0x7f020000;
         public static final int bg_orange=0x7f020001;
-        public static final int ic_launcher=0x7f020002;
-        public static final int motion_detected=0x7f020003;
+        public static final int download_button=0x7f020002;
+        public static final int ic_launcher=0x7f020003;
+        public static final int motion=0x7f020004;
     }
     public static final class id {
         public static final int ServerhostNameField=0x7f080007;
