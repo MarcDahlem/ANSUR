@@ -1,6 +1,8 @@
 package com.example.streamwithvlc;
 
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -505,7 +507,6 @@ public class AppConnectionManager {
 			in = socket.getInputStream();
 
 			//read the file itself
-			byte [] bytearray  = new byte [filesize];
 			Log.i("ANSUR", "File dir: " + context.getFilesDir().toString());
 
 
@@ -515,22 +516,27 @@ public class AppConnectionManager {
 			FileOutputStream fileOutputStream = new FileOutputStream(file);
 			bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
 
+			int length;
+			int size = 1024;
+			byte[] buf;
 
-
-			int bytesRead = -5;
-			int result = 0;
-			do {
-				int restlength = bytearray.length-result;
-				bytesRead = in.read(bytearray, result, restlength);
-				Log.d("ANSUR.DEBUG", result + " Bytes read from " + filesize);
-				if(bytesRead >= 0) {
-					result += bytesRead;
+			if (in instanceof ByteArrayInputStream) {
+				size = in.available();
+				buf = new byte[size];
+				length = in.read(buf, 0, size);
+			} else {
+				ByteArrayOutputStream bos = new ByteArrayOutputStream();
+				buf = new byte[size];
+				while ((length = in.read(buf, 0, size)) != -1) {
+					bos.write(buf, 0, length);
 				}
-			} while(bytesRead > -1);
+				buf = bos.toByteArray();
+			}
 
 
-			if (result!=filesize) {
-				String message = "Downloading error. Received bytes = " + result + ", expected bytes =" +filesize+".";
+
+			if (buf.length!=filesize) {
+				String message = "Downloading error. Received bytes = " + buf.length + ", expected bytes =" +filesize+".";
 				throw new IOException(message);
 			}
 			//			for (int i=0;i<bytearray.length;i++) {
@@ -543,7 +549,7 @@ public class AppConnectionManager {
 			//				bytearray[i]=scanner.nextByte();
 			//			}
 
-			bufferedOutputStream.write(bytearray, 0 , bytearray.length);
+			bufferedOutputStream.write(buf, 0 , buf.length);
 			bufferedOutputStream.flush();
 
 			Log.i("ANSUR", "Downloading movie finished!");
