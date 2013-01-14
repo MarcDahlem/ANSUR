@@ -20,6 +20,7 @@ import android.widget.Toast;
 import classes.Room;
 
 import com.example.streamwithvlc.helper.RoomListviewAdapter;
+import com.google.android.gcm.GCMRegistrar;
 
 public class ListCamerasActivity extends Activity {
 
@@ -63,7 +64,8 @@ public class ListCamerasActivity extends Activity {
 			protected Void doInBackground(Void... params) {
 
 				try {
-					final Collection<Room> newRooms = ConnectionManager.getAllCameras(context);
+					String regId =GCMRegistrar.getRegistrationId(context);
+					final Collection<Room> newRooms = ConnectionManager.getAllCameras(context, regId);
 					final ExpandableListView listView = ListCamerasActivity.this.getListView();
 					ListCamerasActivity.this.runOnUiThread(new Runnable() {
 
@@ -119,6 +121,7 @@ public class ListCamerasActivity extends Activity {
 
 		case R.id.refreshButton:
 			Toast.makeText(getApplicationContext(), "Refreshing", Toast.LENGTH_SHORT).show();
+			this.refreshList();
 			break;
 
 		case R.id.list_back_Button:

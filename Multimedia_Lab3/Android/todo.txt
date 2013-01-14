@@ -1,0 +1,6 @@
+App: subscribe/unsubscribe
+Server: send notification with movie-id
+App&Server: send Movie over movie-id
+Server: send shutdown event
+Server: send camera down event
+Server: check Notification answer and delete app-id if not valid anymore from list and recorders

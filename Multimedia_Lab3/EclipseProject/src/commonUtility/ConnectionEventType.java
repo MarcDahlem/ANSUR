@@ -31,9 +31,9 @@ public enum ConnectionEventType {
 	
 	/** Client request for cams notidications
 	 * a android client wants to get all connected cameras
-	 * parameters: no
+	 * parameters: GCMId
 	 * returns: (1) n number of cameras
-	 * 			(2-(n+1)) camera (line-divided port room cameraname)
+	 * 			(2-(n+1)) camera (line-divided port room cameraname subscribtion-status)
 	 */
 	CLIENT_GET_CAMS,
 	

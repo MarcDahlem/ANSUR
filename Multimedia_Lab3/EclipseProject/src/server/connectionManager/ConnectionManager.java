@@ -103,7 +103,7 @@ public class ConnectionManager {
 				break;
 			case CLIENT_GET_CAMS:
 				//a client wants to get a list with all the cameras
-				this.clientGetAllCams(writer);
+				this.clientGetAllCams(writer, scanner);
 				break;
 
 			default:
@@ -128,8 +128,15 @@ public class ConnectionManager {
 		}
 	}
 
-	private void clientGetAllCams(PrintWriter writer) {
+	private void clientGetAllCams(PrintWriter writer, Scanner scanner) throws IOException {
 		// a client wants to have all cameras registered
+		if (!scanner.hasNextLine()) {
+			writer.write(ConnectionEventType.SERVER_EXCEPTION+"\n");
+			writer.flush();
+			throw new IOException("No client id followed to the getallcameras command. Not conform to the specified protocol.");
+		}
+		//first get the clients registration id
+		String regId = scanner.nextLine();
 		
 		//create the event and notify. After that should all motion recorders be added to the event and the names can be written to the writer
 		ConnectionEvent event = new ConnectionEvent(this, ConnectionEventType.CLIENT_GET_CAMS);
@@ -143,6 +150,7 @@ public class ConnectionManager {
 			writer.write(cam.getPort() + "\n");
 			writer.write(cam.getRoomName() + "\n");
 			writer.write(cam.getCameraName() + "\n");
+			writer.write(cam.getSubscriptionStatus(regId)+"\n");
 		}
 		
 		writer.flush();

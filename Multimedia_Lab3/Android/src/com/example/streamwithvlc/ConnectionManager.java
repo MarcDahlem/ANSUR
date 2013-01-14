@@ -73,7 +73,7 @@ public class ConnectionManager {
 
 					//everything is fine. Read the answer
 					if ("true".equals(line)) {
-						
+
 						String successMessage = "Device successfully (un)registered on server (regId = " + registrationId + ")";
 						MainActivity.displayMessage(context, successMessage);
 						Log.i("ANSURGCM", successMessage);
@@ -134,7 +134,7 @@ public class ConnectionManager {
 		String message = "unregistering device (regId = " + registrationId + ")";
 		Log.i("ANSURGCM", message);
 		MainActivity.displayMessage(context, message);
-		
+
 		ConnectionEventType type = ConnectionEventType.CLIENT_DEREGISTER;
 
 		//TODO unsubscribe from all subscibed cameras
@@ -145,7 +145,7 @@ public class ConnectionManager {
 		return success;
 	}
 
-	public static Collection<Room> getAllCameras(Context context) throws IOException {
+	public static Collection<Room> getAllCameras(Context context, String regId) throws IOException {
 		PrintWriter pw = null;
 		Scanner scanner = null;
 		Socket socket = null;
@@ -159,6 +159,7 @@ public class ConnectionManager {
 
 			//Send the get cams command like defined in the protocol
 			pw.write(ConnectionEventType.CLIENT_GET_CAMS.name()+"\n");
+			pw.write(regId+"\n");
 			pw.flush();
 
 			//then wait for the answer and restructure it
@@ -224,8 +225,25 @@ public class ConnectionManager {
 					rooms.put(roomName, room);
 				}
 
+				if (!scanner.hasNextLine()) {
+					String message = "No camera subscribtion status found for camera " + (i+1) +"/" + amount + " with name "+ cameraName+ " on port " + port +" in room "+ roomName+".";
+					MainActivity.displayMessage(context, message);
+					throw new IOException(message);
+				}
+
+				if (!scanner.hasNextBoolean()) {
+					String line = scanner.nextLine();
+					String message = "Server did not answer correctly! Expected subscription status of camera, got '"+ line + "'.";
+					MainActivity.displayMessage(context, message);
+					throw new IOException(message);
+				}
+
+				//read the subscribtion status
+				boolean subscribed = scanner.nextBoolean();
+				scanner.nextLine();
+
 				//add the camera to this room
-				Camera cam = new Camera(cameraName, port, false); //TODO check with the old cameras and set them selected if they were before
+				Camera cam = new Camera(cameraName, port, subscribed);
 				room.addCamera(cam);
 			}
 
@@ -265,7 +283,7 @@ public class ConnectionManager {
 			pw.write(ConnectionEventType.CLIENT_SUBSCRIBE.name()+"\n");
 			pw.write(cameras.size()+"\n");
 			pw.write(registrationId+"\n");
-			
+
 			for (Camera camera:cameras) {
 				pw.write(camera.getPort() + "\n");
 			}
@@ -311,7 +329,7 @@ public class ConnectionManager {
 		}
 
 	}
-	
+
 	public static void unsubscribeFrom(Context context, Collection<Camera> cameras, String registrationId) throws IOException {
 		PrintWriter pw = null;
 		Scanner scanner = null;
@@ -328,7 +346,7 @@ public class ConnectionManager {
 			pw.write(ConnectionEventType.CLIENT_UNSUBSCRIBE.name()+"\n");
 			pw.write(cameras.size()+"\n");
 			pw.write(registrationId+"\n");
-			
+
 			for (Camera camera:cameras) {
 				pw.write(camera.getPort() + "\n");
 			}
