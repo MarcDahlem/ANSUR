@@ -1,7 +1,9 @@
 package com.example.streamwithvlc;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -17,6 +19,7 @@ import android.view.Menu;
 import android.view.View;
 import android.widget.ExpandableListView;
 import android.widget.Toast;
+import classes.Camera;
 import classes.Room;
 
 import com.example.streamwithvlc.helper.RoomListviewAdapter;
@@ -25,6 +28,7 @@ import com.google.android.gcm.GCMRegistrar;
 public class ListCamerasActivity extends Activity {
 
 	private AsyncTask<Void, Void, Void> refreshTask;
+	private AsyncTask<Void, Void, Void> subscribeTask;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -116,7 +120,8 @@ public class ListCamerasActivity extends Activity {
 
 		//Move the user to "new movie" page
 		case R.id.subscribeButton:
-			Toast.makeText(getApplicationContext(), "Subscribing", Toast.LENGTH_SHORT).show();
+			Toast.makeText(getApplicationContext(), "Update subscriptions", Toast.LENGTH_SHORT).show();
+			this.updateSubscriptions();
 			break;
 
 		case R.id.refreshButton:
@@ -129,6 +134,81 @@ public class ListCamerasActivity extends Activity {
 			break;
 		}
 	}
+
+	private void updateSubscriptions() {
+		final Context context = this;
+		subscribeTask = new AsyncTask<Void, Void, Void>() {
+
+			@Override
+			protected Void doInBackground(Void... params) {
+
+				try {
+					String regId =GCMRegistrar.getRegistrationId(context);
+
+					ExpandableListView listView = ListCamerasActivity.this.getListView();
+					final RoomListviewAdapter adapter = (RoomListviewAdapter)listView.getExpandableListAdapter();
+
+					Collection<Room> rooms = adapter.getRooms();
+					ArrayList<Camera> sub_cameras=new ArrayList<Camera>();
+					ArrayList<Camera> unsub_cameras=new ArrayList<Camera>();
+
+					for (Room room:rooms) {
+						if (room.needsUpdate()) {
+							Map<String, List<Camera>> outstandings = room.getOutstandingUpdates();
+							List<Camera> outSub = outstandings.get(Room.SUBSCRIPTION);
+							List<Camera> outUnsub = outstandings.get(Room.UNSUBSCRIPTION);
+							sub_cameras.addAll(outSub);
+							unsub_cameras.addAll(outUnsub);
+						}
+					}
+
+					if (!sub_cameras.isEmpty()) {
+						ConnectionManager.subscribeTo(context, sub_cameras, regId);
+
+
+						for (Camera sub_camera:sub_cameras) {
+							sub_camera.setSubscribed(true);
+						}
+					}
+
+					if (!unsub_cameras.isEmpty()) {
+						ConnectionManager.unsubscribeFrom(context, unsub_cameras, regId);
+
+						for (Camera unsub_cam : unsub_cameras) {
+							unsub_cam.setSubscribed(false);
+						}
+					}
+
+					ListCamerasActivity.this.runOnUiThread(new Runnable() {
+
+						@Override
+						public void run() {
+							adapter.notifyDataSetChanged();
+						}
+					});
+				} catch (final IOException e) {
+					Log.e("ANSUR", "(Un)Subscribe error: ", e);
+					ListCamerasActivity.this.runOnUiThread(new Runnable() {
+
+						@Override
+						public void run() {
+							Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();
+						}
+					});
+				}
+
+				return null;
+			}
+
+			@Override
+			protected void onPostExecute(Void result) {
+				subscribeTask = null;
+			}
+
+		};
+		subscribeTask.execute(null, null, null);
+	}
+
 
 	private Collection<Room> generateRooms() {		
 		Map<String, Room> knownRooms = new TreeMap<String,Room>();
@@ -148,6 +228,10 @@ public class ListCamerasActivity extends Activity {
 
 		if (refreshTask != null) {
 			refreshTask.cancel(true);
+		}
+
+		if (subscribeTask!=null) {
+			subscribeTask.cancel(true);
 		}
 		super.onDestroy();
 	}

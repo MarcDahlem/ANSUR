@@ -69,7 +69,7 @@ public class MainActivity extends Activity {
 					Toast.LENGTH_SHORT).show();
 			if (GCMRegistrar.isRegisteredOnServer(this)) {
 				// Skips registration.
-				Toast.makeText(getApplicationContext(), "Device is registerd on server",
+				Toast.makeText(getApplicationContext(), "Device is registered on server",
 						Toast.LENGTH_SHORT).show();
 			} else {
 				// Try to register again, but not in the UI thread.

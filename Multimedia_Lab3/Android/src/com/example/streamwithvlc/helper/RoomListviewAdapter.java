@@ -1,9 +1,8 @@
 package com.example.streamwithvlc.helper;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-
-import com.example.streamwithvlc.R;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -14,6 +13,8 @@ import android.widget.CheckBox;
 import android.widget.TextView;
 import classes.Camera;
 import classes.Room;
+
+import com.example.streamwithvlc.R;
 
 public class RoomListviewAdapter extends BaseExpandableListAdapter{
 	private LayoutInflater inflater;
@@ -45,18 +46,13 @@ public class RoomListviewAdapter extends BaseExpandableListAdapter{
 		((TextView) convertView.findViewById(R.id.camname)).setText(cam.toString());
 		CheckBox checkbox = (CheckBox) convertView.findViewById(R.id.camCheckbox);
 		boolean selected = cam.isSelected();
-		boolean subscribed = cam.isSubscribed();
+		
 		checkbox.setChecked(selected);
-		if (selected && subscribed) {
-			//convertView.setBackgroundDrawable(context.getResources().getDrawable(R.drawable.bg));
-		} else {
-			if (!selected && !subscribed) {
-			//convertView.setBackgroundResource(R.color.darkgrey);
-			} else {
-				// unequal state
-				convertView.setBackgroundDrawable(context.getResources().getDrawable(R.drawable.bg_orange));
-			}
+		
+		if (cam.needsUpdate()) {
+			convertView.setBackgroundDrawable(context.getResources().getDrawable(R.drawable.bg_orange));
 		}
+		
 		checkbox.setOnCheckedChangeListener(new CamClickListener(cam, this));
 		return convertView;
 	}
@@ -90,11 +86,8 @@ public class RoomListviewAdapter extends BaseExpandableListAdapter{
 		boolean selected = room.isSelected();
 		checkbox.setChecked(selected);
 		
-		//TODO
-		if (selected) {
-			//convertView.setBackgroundDrawable(context.getResources().getDrawable(R.drawable.bg));
-		} else {
-			//convertView.setBackgroundResource(R.color.darkgrey);
+		if (room.needsUpdate()) {
+			convertView.setBackgroundDrawable(context.getResources().getDrawable(R.drawable.bg_orange));
 		}
 		checkbox.setOnCheckedChangeListener(new RoomClickListener(room, this));
 		return convertView;	
@@ -117,6 +110,10 @@ public class RoomListviewAdapter extends BaseExpandableListAdapter{
 			Collections.sort(room.getCameras());
 		}
 		this.rooms=rooms.toArray(new Room[0]);
+	}
+
+	public Collection<Room> getRooms() {
+		return Arrays.asList(this.rooms);
 	}
 
 }

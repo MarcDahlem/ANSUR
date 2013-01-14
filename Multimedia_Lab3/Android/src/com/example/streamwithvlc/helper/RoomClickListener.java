@@ -17,7 +17,6 @@ public class RoomClickListener implements OnCheckedChangeListener {
 
 	@Override
 	public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-		room.setSelection(isChecked);
 		for(Camera camera:room.getCameras()) {
 			camera.setSelection(isChecked);
 		}

@@ -80,7 +80,7 @@ public class ConnectionManager {
 						return true;
 					} else {
 						if ("false".equals(line)) {
-							String message = "Device is allready registerd on server";
+							String message = "Registration: Device is allready registered on server. Deregistration: Device was not registered.";
 							MainActivity.displayMessage(context, message);
 							return true;
 						} else {
