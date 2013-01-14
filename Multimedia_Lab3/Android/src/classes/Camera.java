@@ -2,14 +2,16 @@ package classes;
 
 public class Camera {
 
-	String name;
-	int port;
-	boolean isSelected = false;
+	private String name;
+	private int port;
+	private boolean isSelected;
+	private boolean isSubscribed;
 	
-	public Camera(String name, int port, boolean isSelected){
+	public Camera(String name, int port, boolean subscribed){
 		this.name = name;
 		this.port = port;
-		this.isSelected = isSelected;
+		this.isSelected = subscribed;
+		this.isSubscribed = subscribed;
 	}
 
 	public String getName() {
@@ -24,12 +26,16 @@ public class Camera {
 		return isSelected;
 	}
 
-	public void setSelected(boolean isSelected) {
+	public void setSelection(boolean isSelected) {
 		this.isSelected = isSelected;
 	}
 
 	public String toString(){
 		return new String("Camera: " + name + " Port: " + port);
+	}
+
+	public boolean isSubscribed() {
+		return this.isSubscribed;
 	}
 	
 }

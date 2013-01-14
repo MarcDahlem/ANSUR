@@ -1,48 +1,70 @@
 package com.example.streamwithvlc;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
-
-import com.google.android.gcm.GCMRegistrar;
+import java.util.Map;
+import java.util.TreeMap;
 
 import android.app.Activity;
-import android.content.Context;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
-import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.ExpandableListView;
 import classes.Camera;
 import classes.Room;
 
-/**
- * http://www.mysamplecode.com/2012/07/android-listview-checkbox-example.html
- * @author Jon Martin Mikalsen
- *
- */
+import com.example.streamwithvlc.helper.RoomListviewAdapter;
 
 public class ListCamerasActivity extends Activity {
-
-	
-	RoomListviewAdapter aa = null;
-	ListView camerasListView;
-	private Collection<Room> rooms;
-	private AsyncTask<Void, Void, Void> getAllRoomsTask;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_list_cameras);
-		setListView();
 		
+		setContentView(R.layout.activity_cameralist);
+
+        // Get the ExpandableListView from the layout
+        ExpandableListView listView = (ExpandableListView) findViewById(R.id.listView);
+
+		//getExpandableListView().setGroupIndicator(null);
+		//getExpandableListView().setDivider(null);
+		//getExpandableListView().setDividerHeight(0);
+		//registerForContextMenu(getExpandableListView());
+		
+		Collection<Room> rooms = this.generateRooms();
+		
+		if (listView.getExpandableListAdapter() == null) {
+			RoomListviewAdapter adapter = new RoomListviewAdapter(this,rooms);
+			listView.setAdapter(adapter);
+		} else {
+			RoomListviewAdapter adapter = (RoomListviewAdapter)listView.getExpandableListAdapter();
+			adapter.setRooms(rooms);
+			adapter.notifyDataSetChanged();
+		}
+	}
+
+	private Collection<Room> generateRooms() {
+		String room1Name = "ZYX";
+		String room2Name = "ABC";
+		
+		Room room1 = new Room(room1Name);
+		Room room2 = new Room (room2Name);
+		
+		Map<String, Room> knownRooms = new TreeMap<String,Room>();
+		knownRooms.put(room1Name, room1);
+		knownRooms.put(room2Name, room2);
+		
+		Camera cam1 = new Camera("zyx", 8000, false);
+		Camera cam2 = new Camera("abc", 8001, false);
+		Camera cam3 = new Camera("wvu",8002,false);
+		Camera cam4 = new Camera("def", 8003, false);
+		
+		Room room = knownRooms.get(room2Name);
+		room.addCamera(cam3);
+		room.addCamera(cam4);
+		
+		room = knownRooms.get(room1Name);
+		room.addCamera(cam1);
+		room.addCamera(cam2);
+		return knownRooms.values();
 	}
 
 	@Override
@@ -50,86 +72,6 @@ public class ListCamerasActivity extends Activity {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.activity_main, menu);
 		return true;
-	}
-
-	public void setListView(){
-		getAllRoomsTask = new AsyncTask<Void, Void, Void>() {
-
-			@Override
-			protected Void doInBackground(Void... params) {
-				// At this point all attempts to register with the app
-				// server failed, so we need to unregister the device
-				// from GCM - the app will try to register again when
-				// it is restarted. Note that GCM will send an
-				// unregistered callback upon completion, but
-				// GCMIntentService.onUnregistered() will ignore it.
-				try {
-					// set resID to be a specefic layout
-					int resID = R.layout.camera_info;
-					// Combine the list to the layout
-					rooms = ConnectionManager.getAllCameras(getApplicationContext());
-					aa = new RoomListviewAdapter(getApplicationContext(), resID, rooms);
-					// Gets the listview
-					camerasListView = (ListView) findViewById(R.id.camerasListView);
-					// Sets the adapter into the view
-					camerasListView.setAdapter(aa);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-
-				return null;
-			}
-			@Override
-			protected void onPostExecute(Void result) {
-				getAllRoomsTask = null;
-			}
-
-		};
-		getAllRoomsTask.execute(null, null, null);
-		
-
-	}
-	
-	
-	public void onClick(View view) {
-
-		Toast toast;
-		switch (view.getId()) {
-		case R.id.subscribe_button:
-			//checkIfSubscribed();
-			break;
-
-		case R.id.refresh_button:
-			Toast.makeText(getApplicationContext(), "Refreshing list",
-					Toast.LENGTH_SHORT).show();
-			try {
-				this.rooms = ConnectionManager.getAllCameras(this);
-			} catch (IOException e) {
-				Toast.makeText(this, "get all cameras failed", Toast.LENGTH_SHORT).show();
-				Log.e("ANSUR", "get all cameras had an error:", e);
-			}
-			break;
-
-		case R.id.cameras_back_button:
-			finish();
-			break;
-		}
-	}
-	
-	public void checkIfSubscribed() {
-		StringBuffer responseText = new StringBuffer();
-		responseText.append("The following were selected...");
-
-		ArrayList<Camera> cameraList = null; //aa.getAllCameras();
-		for (int i = 0; i < cameraList.size(); i++) {
-			Camera camera = cameraList.get(i);
-			if (camera.isSelected()) {
-				responseText.append("\n" + camera.getName());
-			}
-		}
-
-		Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG)
-				.show();
 	}
 
 }
