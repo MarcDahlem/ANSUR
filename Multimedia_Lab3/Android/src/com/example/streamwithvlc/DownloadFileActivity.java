@@ -4,15 +4,21 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Menu;
+import android.widget.Toast;
 
 public class DownloadFileActivity extends Activity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		registerReceiver(mHandleMessageReceiver,new IntentFilter(MainActivity.TOAST_MESSAGE_ACTION));
 		setContentView(R.layout.activity_download_file);
 		downloadFile();
 		finish();
@@ -23,6 +29,13 @@ public class DownloadFileActivity extends Activity {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.activity_download_file, menu);
 		return true;
+	}
+	
+	@Override
+	protected void onDestroy() {
+		// destroy 
+		unregisterReceiver(mHandleMessageReceiver);
+		super.onDestroy();
 	}
 	
 	protected void downloadFile() {
@@ -49,5 +62,13 @@ public class DownloadFileActivity extends Activity {
 		};
 		deregisterServerTask.execute(null,null,null);
 	}
+	
+	private final BroadcastReceiver mHandleMessageReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			String message = intent.getExtras().getString(MainActivity.EXTRA_MESSAGE);
+			Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+		}
+	};
 
 }
