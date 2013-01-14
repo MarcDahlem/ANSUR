@@ -33,34 +33,34 @@ public class GCMIntentService extends GCMBaseIntentService {
 		switch(GcmMessages.GCMCOMMAND.valueOf(msg)){
 		case MOTION_START:
 			content = extras.getString("FILE_PATH");
-			createNotificationMotionDetected("A motion is detected", "There has been detected a motion on camera 1", content.hashCode());
+			createNotificationMotionDetected("MOTION DETECTED","A motion is detected", "There has been detected a motion on camera 1", content.hashCode());
 			break;
 			
 		case MOTION_END:
 			content = extras.getString("FILE_PATH");
-			createNotificationMotionStopped("Motion has stopped", "Motion that was detected can be downloaded here", content.hashCode());
+			downloadFileNotification("Motion has stopped", "Motion that was detected can be downloaded here", content.hashCode());
 			break;
 			
 		case CAMERA_DOWN:
 			content = extras.getString("PORT");
-			createNotificationCameraStopped("Lost camera", "Camera on port: " + content + " was disconnected", content.hashCode());
+			createNotificationMotionDetected("LOST CONNECTION","Lost camera", "Camera on port: " + content + " was disconnected", content.hashCode());
 			break;
 			
 		case SERVER_SHUTDOWN:
-			createNotificationServerStopped("Server down", "The server was shut down",1);
+			createNotificationMotionDetected("SERVER SHUTDOWN","Server down", "The server was shut down",1);
 			break;
 		}
 
 	}
 
 	
-	public void createNotificationMotionDetected(String title, String message, int notificationID) {
+	public void createNotificationMotionDetected(String popupText, String title, String message, int notificationID) {
 		NotificationCompat.Builder mBuilder =
 		        new NotificationCompat.Builder(this)
 		        .setSmallIcon(R.drawable.motion_detected)
 		        .setContentTitle(title)
 		        .setContentText(message)
-		        .setTicker("MOTION DETECTED");
+		        .setTicker(popupText);
 		// Creates an explicit intent for an Activity in your app
 		//Intent resultIntent = new Intent(this, MainActivity.class);
 		
@@ -89,17 +89,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 		
 	}
 	
-	public void createNotificationMotionStopped(String title, String message,int notificationID ) {
-		//TODO: Same as before, only that instead if going to MainActivity, you download movie through connectionmanager
-		
-	}
-	
-	public void createNotificationCameraStopped(String title, String message,int notificationID ) {
-		//TODO: Same as before, only that instead if going to MainActivity, you download movie through connectionmanager
-		
-	}
-	
-	public void createNotificationServerStopped(String title, String message,int notificationID ) {
+	public void downloadFileNotification(String title, String message,int notificationID ) {
 		//TODO: Same as before, only that instead if going to MainActivity, you download movie through connectionmanager
 		
 	}

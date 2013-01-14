@@ -47,7 +47,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 			break;
 			
 		case SERVER_SHUTDOWN:
-			createNotificationServerStopped("Server down", "The server was shut down",1);
+			createNotificationMotionDetected("SERVER SHUTDOWN","Server down", "The server was shut down",1);
 			break;
 		}
 

@@ -33,48 +33,45 @@ public class GCMIntentService extends GCMBaseIntentService {
 		switch(GcmMessages.GCMCOMMAND.valueOf(msg)){
 		case MOTION_START:
 			content = extras.getString("FILE_PATH");
-			createNotificationMotionDetected("A motion is detected", "There has been detected a motion on camera 1", content.hashCode());
+			createNotification("MOTION DETECTED","A motion is detected", "There has been detected a motion on camera 1", content.hashCode());
 			break;
 			
 		case MOTION_END:
 			content = extras.getString("FILE_PATH");
-			createNotificationMotionStopped("Motion has stopped", "Motion that was detected can be downloaded here", content.hashCode());
+			downloadFileNotification("Motion has stopped", "Motion that was detected can be downloaded here", content.hashCode());
 			break;
 			
 		case CAMERA_DOWN:
 			content = extras.getString("PORT");
-			createNotificationCameraStopped("Lost camera", "Camera on port: " + content + " was disconnected", content.hashCode());
+			createNotification("LOST CONNECTION","Lost camera", "Camera on port: " + content + " was disconnected", content.hashCode());
 			break;
 			
 		case SERVER_SHUTDOWN:
-			createNotificationServerStopped("Server down", "The server was shut down",1);
+			createNotification("SERVER SHUTDOWN","Server down", "The server was shut down",1);
 			break;
 		}
 
 	}
 
 	
-	public void createNotificationMotionDetected(String title, String message, int notificationID) {
+	public void createNotification(String popupText, String title, String message, int notificationID) {
 		NotificationCompat.Builder mBuilder =
 		        new NotificationCompat.Builder(this)
 		        .setSmallIcon(R.drawable.motion_detected)
 		        .setContentTitle(title)
 		        .setContentText(message)
-		        .setTicker("MOTION DETECTED");
+		        .setTicker(popupText);;
 		// Creates an explicit intent for an Activity in your app
-		//Intent resultIntent = new Intent(this, MainActivity.class);
-		
+		Intent resultIntent = new Intent(this, MainActivity.class);
 		// The stack builder object will contain an artificial back stack for the
 		// started Activity.
 		// This ensures that navigating backward from the Activity leads out of
 		// your application to the Home screen.
 		TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-		
 		// Adds the back stack for the Intent (but not the Intent itself)
 		stackBuilder.addParentStack(MainActivity.class);
-		
 		// Adds the Intent that starts the Activity to the top of the stack
-		stackBuilder.addNextIntent(launchApplication());
+		stackBuilder.addNextIntent(resultIntent);
 		PendingIntent resultPendingIntent =
 		        stackBuilder.getPendingIntent(
 		            0,
@@ -83,23 +80,12 @@ public class GCMIntentService extends GCMBaseIntentService {
 		mBuilder.setContentIntent(resultPendingIntent);
 		NotificationManager mNotificationManager =
 		    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-		
-		// notificationID allows you to update the notification later on.
+		// mId allows you to update the notification later on.
 		mNotificationManager.notify(notificationID, mBuilder.build());
 		
 	}
 	
-	public void createNotificationMotionStopped(String title, String message,int notificationID ) {
-		//TODO: Same as before, only that instead if going to MainActivity, you download movie through connectionmanager
-		
-	}
-	
-	public void createNotificationCameraStopped(String title, String message,int notificationID ) {
-		//TODO: Same as before, only that instead if going to MainActivity, you download movie through connectionmanager
-		
-	}
-	
-	public void createNotificationServerStopped(String title, String message,int notificationID ) {
+	public void downloadFileNotification(String title, String message,int notificationID ) {
 		//TODO: Same as before, only that instead if going to MainActivity, you download movie through connectionmanager
 		
 	}
@@ -108,31 +94,34 @@ public class GCMIntentService extends GCMBaseIntentService {
 		PackageManager packageManager = getApplicationContext().getPackageManager();
 		Intent applicationIntent = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER);
 
-		String vendor = "VLC Player";
-		String packageName = "org.videolan.vlc.betav7neon";
-		String className = "org.videolan.vlc.betav7neon.gui.MainActivity";
-		
-		
+		// Verify clock implementation
+		// Use package explorer in google play store to find package name and activity name
+		String vlcImpls[][] = {
+				{"VLC Player", "org.videolan.vlc.betav7neon", "org.videolan.vlc.betav7neon.gui.MainActivity"}
+		};
+
 		boolean foundApplicationImpl = false;
-	
-		try {
-			ComponentName cn = new ComponentName(packageName, className);
-			ActivityInfo aInfo = packageManager.getActivityInfo(cn,
-					PackageManager.GET_META_DATA);
-			applicationIntent.setComponent(cn);
-			Log.d("Debug", "Found " + vendor + " --> " + packageName + "/"
-					+ className);
-			foundApplicationImpl = true;
-		} catch (NameNotFoundException e) {
-			Log.d("Debug", vendor + " does not exists");
+
+		for(int i=0; i<vlcImpls.length; i++) {
+			String vendor = vlcImpls[i][0];
+			String packageName = vlcImpls[i][1];
+			String className = vlcImpls[i][2];
+			try {
+				ComponentName cn = new ComponentName(packageName, className);
+				ActivityInfo aInfo = packageManager.getActivityInfo(cn, PackageManager.GET_META_DATA);
+				applicationIntent.setComponent(cn);
+				Log.d("Debug", "Found " + vendor + " --> " + packageName + "/" + className);
+				foundApplicationImpl = true;
+			} catch (NameNotFoundException e) {
+				Log.d("Debug", vendor + " does not exists");
+			}
 		}
 
 		if (foundApplicationImpl) {
 			applicationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-			return applicationIntent;
 			//startActivity(applicationIntent);
+			return applicaitoni
 		}
-		return null;
 	}
 
 	

@@ -1,0 +1,4 @@
+1358171236992	Rename local variable 'foundClockImpl'
+1358171333208	Rename local variable 'clockImpls'
+1358172124860	Rename method 'createNotification'
+1358172169561	Rename method 'downloadFileNotification'

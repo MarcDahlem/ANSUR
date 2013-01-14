@@ -43,11 +43,11 @@ public class GCMIntentService extends GCMBaseIntentService {
 			
 		case CAMERA_DOWN:
 			content = extras.getString("PORT");
-			createNotificationCameraStopped("Lost camera", "Camera on port: " + content + " was disconnected", content.hashCode());
+			createNotificationCameraStopped("LOST CONNECTION","Lost camera", "Camera on port: " + content + " was disconnected", content.hashCode());
 			break;
 			
 		case SERVER_SHUTDOWN:
-			createNotificationServerStopped("Server down", "The server was shut down",1);
+			createNotificationMotionDetected("SERVER SHUTDOWN","Server down", "The server was shut down",1);
 			break;
 		}
 
