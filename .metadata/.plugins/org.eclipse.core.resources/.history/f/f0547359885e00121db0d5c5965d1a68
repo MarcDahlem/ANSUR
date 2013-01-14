@@ -12,6 +12,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Menu;
 import android.widget.Toast;
+import android.view.View;
 
 public class DownloadFileActivity extends Activity {
 
@@ -22,6 +23,7 @@ public class DownloadFileActivity extends Activity {
 		setContentView(R.layout.activity_download_file);
 		Bundle extra = getIntent().getExtras();
 		downloadFile(extra.getString("FILE_PATH"));
+		startActivity(new Intent(this, MainActivity.class));
 	}
 
 	@Override

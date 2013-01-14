@@ -8,3 +8,4 @@
 1358182082234	Delete element
 1358187582408	Rename method 'onNewIntent'
 1358187603824	Rename method 'downloadFIle'
+1358195682720	Extract local variable 'restlength'

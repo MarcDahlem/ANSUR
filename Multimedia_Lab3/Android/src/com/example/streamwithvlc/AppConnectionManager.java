@@ -520,7 +520,9 @@ public class AppConnectionManager {
 			int bytesRead = -5;
 			int result = 0;
 			do {
-				bytesRead = in.read(bytearray, result, (bytearray.length-result));
+				int restlength = bytearray.length-result;
+				bytesRead = in.read(bytearray, result, restlength);
+				Log.d("ANSUR.DEBUG", result + " Bytes read from " + filesize);
 				if(bytesRead >= 0) {
 					result += bytesRead;
 				}
