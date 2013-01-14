@@ -47,8 +47,8 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 		registerReceiver(mHandleMessageReceiver,new IntentFilter(TOAST_MESSAGE_ACTION));
 
-		GCMRegistrar.checkDevice(this);
-		GCMRegistrar.checkManifest(this);
+		GCMRegistrar.checkDevice(getApplicationContext());
+		GCMRegistrar.checkManifest(getApplicationContext());
 	}
 
 	@Override
@@ -61,16 +61,16 @@ public class MainActivity extends Activity {
 
 
 	public void registerDevice() {
-		final String regId = GCMRegistrar.getRegistrationId(this);
+		final String regId = GCMRegistrar.getRegistrationId(getApplicationContext());
 		if (regId.equals("")) {
 			//not registered yet. Automatically register on startup
-			GCMRegistrar.register(this, SENDER_ID);
+			GCMRegistrar.register(getApplicationContext(), SENDER_ID);
 		} else {
 			// Device is already registered on GCM, check server.
 			Log.v("GCM", "Device Already registered on GCM, try to register on the server.");
 			Toast.makeText(getApplicationContext(), "Device Already registered on GCM, try to register on the server.",
 					Toast.LENGTH_SHORT).show();
-			if (GCMRegistrar.isRegisteredOnServer(this)) {
+			if (GCMRegistrar.isRegisteredOnServer(getApplicationContext())) {
 				// Skips registration.
 				Toast.makeText(getApplicationContext(), "Device is registered on server",
 						Toast.LENGTH_SHORT).show();
@@ -78,7 +78,7 @@ public class MainActivity extends Activity {
 				// Try to register again, but not in the UI thread.
 				// It's also necessary to cancel the thread onDestroy(),
 				// hence the use of AsyncTask instead of a raw thread.
-				final Context context = this;
+				final Context context = getApplicationContext();
 				registerTask = new AsyncTask<Void, Void, Void>() {
 
 					@Override
@@ -111,14 +111,14 @@ public class MainActivity extends Activity {
 
 
 	public void deregisterDevice() {
-		final String regId = GCMRegistrar.getRegistrationId(this);
+		final String regId = GCMRegistrar.getRegistrationId(getApplicationContext());
 		if (regId.equals("")) {
 			//not registered yet. nothing to do
 			return;
 		} else {
 			// Device is registered on GCM, check if it is also registered on server
-			final Context context = this;
-			if (GCMRegistrar.isRegisteredOnServer(this)) {
+			final Context context = getApplicationContext();
+			if (GCMRegistrar.isRegisteredOnServer(getApplicationContext())) {
 				// deregister from server first
 
 				AsyncTask<Void, Void, Void> deregisterServerTask = new AsyncTask<Void, Void, Void>() {
@@ -184,12 +184,12 @@ public class MainActivity extends Activity {
 		//Move the user to "new movie" page
 		case R.id.startButton:
 			//launchApplication();
-			if (!GCMRegistrar.isRegistered(this)) {
+			if (!GCMRegistrar.isRegistered(getApplicationContext())) {
 				Toast.makeText(getApplicationContext(), "Device not registered on GCM. Please register first.",Toast.LENGTH_SHORT).show();
 				break;
 			}
 
-			if (!GCMRegistrar.isRegisteredOnServer(this)) {
+			if (!GCMRegistrar.isRegisteredOnServer(getApplicationContext())) {
 				Toast.makeText(getApplicationContext(), "GCM registered, but not on the server. Please try to register again.",Toast.LENGTH_SHORT).show();
 				break;
 			}
@@ -240,7 +240,7 @@ public class MainActivity extends Activity {
 		if (registerTask != null) {
 			registerTask.cancel(true);
 		}
-		GCMRegistrar.onDestroy(this);
+		GCMRegistrar.onDestroy(getApplicationContext());
 		super.onDestroy();
 	}
 

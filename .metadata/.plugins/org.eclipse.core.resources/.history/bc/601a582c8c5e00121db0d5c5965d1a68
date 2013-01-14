@@ -15,20 +15,11 @@
         android:text="@string/Downloading_movie" />
 
     <VideoView
-        android:id="@+id/motionVideoView2"
+        android:id="@+id/videoView1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_below="@+id/textViewDownloading"
         android:layout_marginTop="80dp" />
-
-    <Button
-        android:id="@+id/playMovieButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/textViewDownloading"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="18dp"
-        android:text="Play Movie" />
 
 </RelativeLayout>

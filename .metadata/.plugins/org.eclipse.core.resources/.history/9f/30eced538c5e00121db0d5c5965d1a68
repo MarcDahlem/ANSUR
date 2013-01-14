@@ -11,7 +11,6 @@ import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Menu;
-import android.view.View;
 import android.widget.MediaController;
 import android.widget.Toast;
 import android.widget.VideoView;
@@ -73,13 +72,6 @@ public class DownloadFileActivity extends Activity {
 			Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
 		}
 	};
-	
-	public void onClick(View view) {
-		switch (view.getId()) {
-		case R.id.playMovieButton:
-			playMovie();
-		}
-	}
 	
 	public void playMovie(){
 		Bundle extras = getIntent().getExtras();
