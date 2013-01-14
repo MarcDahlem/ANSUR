@@ -13,5 +13,6 @@
     <string name="dConnectButton">Deregister device on server</string>
     <string name="title_activity_settings">SettingsActivity</string>
     <string name="set_settings_button">Save</string>
+    <string name="title_activity_download_file">DownloadFileActivity</string>
 
 </resources>

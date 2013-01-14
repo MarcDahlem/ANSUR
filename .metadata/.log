@@ -6190,3 +6190,15 @@ org.eclipse.core.internal.resources.ResourceException: Resource is out of sync w
 	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:54)
 !SUBENTRY 1 org.eclipse.core.resources 4 274 2013-01-14 18:22:12.108
 !MESSAGE Resource is out of sync with the file system: '/Multimedia_Lab3/src/server/connectionManager/ConnectionManager.java'.
+
+!ENTRY com.android.ide.eclipse.adt 4 0 2013-01-14 19:13:58.691
+!MESSAGE Warning: Ignoring name conflict in resource file for name hello_world
+
+!ENTRY com.android.ide.eclipse.adt 4 0 2013-01-14 19:13:58.721
+!MESSAGE Warning: Ignoring name conflict in resource file for name menu_settings
+
+!ENTRY com.android.ide.eclipse.adt 4 0 2013-01-14 19:14:00.023
+!MESSAGE Warning: Ignoring name conflict in resource file for name hello_world
+
+!ENTRY com.android.ide.eclipse.adt 4 0 2013-01-14 19:14:00.023
+!MESSAGE Warning: Ignoring name conflict in resource file for name menu_settings
