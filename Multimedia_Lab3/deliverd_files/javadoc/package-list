@@ -1,0 +1,12 @@
+classes
+client.app
+client.connectionPipe
+client.data
+client.gui
+com.example.streamwithvlc
+com.example.streamwithvlc.helper
+commonUtility
+server.app
+server.connectionManager
+server.gui
+server.motionRecorder
