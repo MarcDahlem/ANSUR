@@ -44,10 +44,10 @@ import commonUtility.GcmMessages;
  */
 public class MotionRecorder {
 
-	private static final String FILESAFE_MUXER = "theoraenc";
+	//private static final String FILESAFE_MUXER = "theoraenc";
 	//private static final String FILESAFE_MUXER = "ffenc_mpeg4";
 
-	private static final String FILESAFE_ENCODER = "oggmux";
+	//private static final String FILESAFE_ENCODER = "oggmux";
 	//private static final String FILESAFE_ENCODER = "mp4mux";
 
 	public static final String FILEENDING = "ogg";
@@ -296,26 +296,26 @@ public class MotionRecorder {
 		//create color space changer
 		Element ffmpeg = ElementFactory.make("ffmpegcolorspace", "ffmpeg color space server recordbin on port " + this.port);
 		//create encoder and muxer
-//		Element enc = ElementFactory.make("theoraenc", "Theora encoder on server on port " + this.port);
-		Element enc = ElementFactory.make(FILESAFE_ENCODER, FILESAFE_ENCODER +" on server on port " + this.port);
-//		Element mux = ElementFactory.make("oggmux", "ogg muxer on server on port " + this.port);
-		Element mux = ElementFactory.make(FILESAFE_MUXER, FILESAFE_MUXER +  " on server on port " + this.port);
+		Element enc = ElementFactory.make("theoraenc", "Theora encoder on server on port " + this.port);
+//		Element enc = ElementFactory.make(FILESAFE_ENCODER, FILESAFE_ENCODER +" on server on port " + this.port);
+		Element mux = ElementFactory.make("oggmux", "ogg muxer on server on port " + this.port);
+//		Element mux = ElementFactory.make(FILESAFE_MUXER, FILESAFE_MUXER +  " on server on port " + this.port);
 		// fileSink
 		Element fileSink = ElementFactory.make("filesink", "File Sink on port " + this.port);
 		fileSink.set("location", fileName);
 		recordBin.addMany(ffmpeg, enc,  mux, fileSink);
-		boolean connected = Element.linkMany(ffmpeg, enc);
+		boolean connected = Element.linkMany(ffmpeg, enc,mux,fileSink);
 		if (!connected) {
-			throw new IllegalStateException("Linking of ffmpeg and encoder failed on port " + this.port);
+			throw new IllegalStateException("Linking of ffmpeg, enc, mux and fileSink failed on port " + this.port);
 		}
-		connected = Element.linkMany(enc, mux);
-		if (!connected) {
-			throw new IllegalStateException("Linking of enc and mux failed on port " + this.port);
-		}
-		connected = Element.linkMany(mux, fileSink);
-		if (!connected) {
-			throw new IllegalStateException("Linking of mux and filesink failed on port " + this.port);
-		}
+//		connected = Element.linkMany(enc, mux);
+//		if (!connected) {
+//			throw new IllegalStateException("Linking of enc and mux failed on port " + this.port);
+//		}
+//		connected = Element.linkMany(mux, fileSink);
+//		if (!connected) {
+//			throw new IllegalStateException("Linking of mux and filesink failed on port " + this.port);
+//		}
 		// add a ghost pad, so that the bin is accessible from the outside
 		Pad staticSourcePad = ffmpeg.getStaticPad("sink");
 
