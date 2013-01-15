@@ -1,0 +1,184 @@
+<class-diagram version="1.0.4" icons="true" always-add-relationships="false" generalizations="true" realizations="true" 
+  associations="true" dependencies="false" nesting-relationships="true">  
+  <class id="1" corner="BOTTOM_RIGHT" language="java" name="classes.Camera" project="Multimedia_Lab3_Clientapp" 
+    file="/Multimedia_Lab3_Clientapp/src/classes/Camera.java" binary="false">    
+    <position height="-1" width="-1" x="122" y="123"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </class>  
+  <class id="2" corner="BOTTOM_RIGHT" language="java" name="classes.Room" project="Multimedia_Lab3_Clientapp" 
+    file="/Multimedia_Lab3_Clientapp/src/classes/Room.java" binary="false">    
+    <position height="-1" width="-1" x="416" y="69"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </class>  
+  <class id="3" corner="BOTTOM_RIGHT" language="java" name="com.example.streamwithvlc.AppConnectionManager" 
+    project="Multimedia_Lab3_Clientapp" 
+    file="/Multimedia_Lab3_Clientapp/src/com/example/streamwithvlc/AppConnectionManager.java" binary="false">    
+    <position height="-1" width="-1" x="760" y="84"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </class>  
+  <class id="4" corner="BOTTOM_RIGHT" language="java" name="com.example.streamwithvlc.DownloadFileActivity" 
+    project="Multimedia_Lab3_Clientapp" 
+    file="/Multimedia_Lab3_Clientapp/src/com/example/streamwithvlc/DownloadFileActivity.java" binary="false">    
+    <position height="-1" width="-1" x="124" y="1046"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </class>  
+  <class id="5" corner="BOTTOM_RIGHT" language="java" name="com.example.streamwithvlc.GCMIntentService" 
+    project="Multimedia_Lab3_Clientapp" 
+    file="/Multimedia_Lab3_Clientapp/src/com/example/streamwithvlc/GCMIntentService.java" binary="false">    
+    <position height="-1" width="-1" x="128" y="814"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </class>  
+  <class id="6" corner="BOTTOM_RIGHT" language="java" name="com.example.streamwithvlc.ListCamerasActivity" 
+    project="Multimedia_Lab3_Clientapp" 
+    file="/Multimedia_Lab3_Clientapp/src/com/example/streamwithvlc/ListCamerasActivity.java" binary="false">    
+    <position height="-1" width="-1" x="817" y="427"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </class>  
+  <class id="7" corner="BOTTOM_RIGHT" language="java" name="com.example.streamwithvlc.MainActivity" 
+    project="Multimedia_Lab3_Clientapp" 
+    file="/Multimedia_Lab3_Clientapp/src/com/example/streamwithvlc/MainActivity.java" binary="false">    
+    <position height="-1" width="-1" x="772" y="782"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </class>  
+  <class id="8" corner="BOTTOM_RIGHT" language="java" name="com.example.streamwithvlc.SettingsActivity" 
+    project="Multimedia_Lab3_Clientapp" 
+    file="/Multimedia_Lab3_Clientapp/src/com/example/streamwithvlc/SettingsActivity.java" binary="false">    
+    <position height="-1" width="-1" x="85" y="547"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </class>  
+  <class id="9" corner="BOTTOM_RIGHT" language="java" name="com.example.streamwithvlc.helper.CamClickListener" 
+    project="Multimedia_Lab3_Clientapp" 
+    file="/Multimedia_Lab3_Clientapp/src/com/example/streamwithvlc/helper/CamClickListener.java" binary="false">    
+    <position height="-1" width="-1" x="129" y="355"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </class>  
+  <class id="10" corner="BOTTOM_RIGHT" language="java" name="com.example.streamwithvlc.helper.RoomClickListener" 
+    project="Multimedia_Lab3_Clientapp" 
+    file="/Multimedia_Lab3_Clientapp/src/com/example/streamwithvlc/helper/RoomClickListener.java" binary="false">    
+    <position height="-1" width="-1" x="506" y="281"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </class>  
+  <class id="11" corner="BOTTOM_RIGHT" language="java" name="com.example.streamwithvlc.helper.RoomListviewAdapter" 
+    project="Multimedia_Lab3_Clientapp" 
+    file="/Multimedia_Lab3_Clientapp/src/com/example/streamwithvlc/helper/RoomListviewAdapter.java" binary="false">    
+    <position height="-1" width="-1" x="450" y="580"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </class>  
+  <enumeration id="12" corner="BOTTOM_RIGHT" language="java" name="commonUtility.ConnectionEventType" 
+    project="Multimedia_Lab3_Clientapp" file="/Multimedia_Lab3_Clientapp/src/commonUtility/ConnectionEventType.java" 
+    binary="false">    
+    <position height="-1" width="-1" x="471" y="891"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </enumeration>  
+  <enumeration id="13" corner="BOTTOM_RIGHT" language="java" name="commonUtility.GcmMessages.GCMCOMMAND" 
+    project="Multimedia_Lab3_Clientapp" file="/Multimedia_Lab3_Clientapp/src/commonUtility/GcmMessages.java" 
+    binary="false">    
+    <position height="-1" width="-1" x="467" y="1252"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </enumeration>  
+  <class id="14" corner="BOTTOM_RIGHT" language="java" name="commonUtility.GcmMessages" 
+    project="Multimedia_Lab3_Clientapp" file="/Multimedia_Lab3_Clientapp/src/commonUtility/GcmMessages.java" 
+    binary="false">    
+    <position height="-1" width="-1" x="430" y="1073"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </class>  
+  <nesting>    
+    <end type="SOURCE" nodeId="14"/>    
+    <end type="TARGET" nodeId="13"/>  
+  </nesting>  
+  <association>    
+    <end type="SOURCE" nodeId="10" navigable="false">      
+      <attribute name="parent"/>      
+      <multiplicity minimum="0" maximum="1"/>    
+    </end>    
+    <end type="TARGET" nodeId="11" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association>    
+    <end type="SOURCE" nodeId="9" navigable="false">      
+      <attribute name="cam"/>      
+      <multiplicity minimum="0" maximum="1"/>    
+    </end>    
+    <end type="TARGET" nodeId="1" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association>    
+    <end type="SOURCE" nodeId="11" navigable="false">      
+      <attribute name="rooms"/>      
+      <multiplicity minimum="0" maximum="2147483647"/>    
+    </end>    
+    <end type="TARGET" nodeId="2" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association>    
+    <end type="SOURCE" nodeId="2" navigable="false">      
+      <attribute name="cams"/>      
+      <multiplicity minimum="0" maximum="2147483647"/>    
+    </end>    
+    <end type="TARGET" nodeId="1" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association>    
+    <end type="SOURCE" nodeId="9" navigable="false">      
+      <attribute name="parent"/>      
+      <multiplicity minimum="0" maximum="1"/>    
+    </end>    
+    <end type="TARGET" nodeId="11" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association>    
+    <end type="SOURCE" nodeId="10" navigable="false">      
+      <attribute name="room"/>      
+      <multiplicity minimum="0" maximum="1"/>    
+    </end>    
+    <end type="TARGET" nodeId="2" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <classifier-display autosize="true" package="true" initial-value="false" signature="true" visibility="true">    
+    <attributes public="true" package="true" protected="true" private="true"/>    
+    <operations public="true" package="true" protected="true" private="true"/>  
+  </classifier-display>  
+  <association-display labels="true" multiplicity="true"/>
+</class-diagram>

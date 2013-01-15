@@ -1,0 +1,36 @@
+<class-diagram version="1.0.4" icons="true" always-add-relationships="false" generalizations="true" realizations="true" 
+  associations="true" dependencies="false" nesting-relationships="true">  
+  <enumeration id="1" corner="BOTTOM_RIGHT" language="java" name="commonUtility.ConnectionEventType" 
+    project="Multimedia_Lab3" file="/Multimedia_Lab3/src/commonUtility/ConnectionEventType.java" binary="false">    
+    <position height="-1" width="-1" x="169" y="87"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </enumeration>  
+  <class id="2" corner="BOTTOM_RIGHT" language="java" name="commonUtility.GcmMessages" project="Multimedia_Lab3" 
+    file="/Multimedia_Lab3/src/commonUtility/GcmMessages.java" binary="false">    
+    <position height="-1" width="-1" x="403" y="62"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </class>  
+  <enumeration id="3" corner="BOTTOM_RIGHT" language="java" name="commonUtility.GcmMessages.GCMCOMMAND" 
+    project="Multimedia_Lab3" file="/Multimedia_Lab3/src/commonUtility/GcmMessages.java" binary="false">    
+    <position height="-1" width="-1" x="440" y="241"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </enumeration>  
+  <nesting>    
+    <end type="SOURCE" nodeId="2"/>    
+    <end type="TARGET" nodeId="3"/>  
+  </nesting>  
+  <classifier-display autosize="true" package="true" initial-value="false" signature="true" visibility="true">    
+    <attributes public="true" package="true" protected="true" private="true"/>    
+    <operations public="true" package="true" protected="true" private="true"/>  
+  </classifier-display>  
+  <association-display labels="true" multiplicity="true"/>
+</class-diagram>
