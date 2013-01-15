@@ -44,13 +44,17 @@ import commonUtility.GcmMessages;
  */
 public class MotionRecorder {
 
-	//private static final String FILESAFE_MUXER = "theoraenc";
-	//private static final String FILESAFE_MUXER = "ffenc_mpeg4";
+//	private static final String MUXER = "oggmux";
+//
+//	private static final String ENCODER = "theoraenc";
 
-	//private static final String FILESAFE_ENCODER = "oggmux";
-	//private static final String FILESAFE_ENCODER = "mp4mux";
+	
+	private static final String MUXER = "mpegtsmux";
 
-	public static final String FILEENDING = "ogg";
+	private static final String ENCODER = "x264enc";
+
+	
+	public static final String FILEENDING = "avi";
 
 	/**
 	 * The pipeline containing the camerabin and is used to control the recorder
@@ -296,9 +300,9 @@ public class MotionRecorder {
 		//create color space changer
 		Element ffmpeg = ElementFactory.make("ffmpegcolorspace", "ffmpeg color space server recordbin on port " + this.port);
 		//create encoder and muxer
-		Element enc = ElementFactory.make("theoraenc", "Theora encoder on server on port " + this.port);
+		Element enc = ElementFactory.make(ENCODER, "Theora encoder on server on port " + this.port);
 //		Element enc = ElementFactory.make(FILESAFE_ENCODER, FILESAFE_ENCODER +" on server on port " + this.port);
-		Element mux = ElementFactory.make("oggmux", "ogg muxer on server on port " + this.port);
+		Element mux = ElementFactory.make(MUXER, "ogg muxer on server on port " + this.port);
 //		Element mux = ElementFactory.make(FILESAFE_MUXER, FILESAFE_MUXER +  " on server on port " + this.port);
 		// fileSink
 		Element fileSink = ElementFactory.make("filesink", "File Sink on port " + this.port);
@@ -513,7 +517,24 @@ public class MotionRecorder {
 			if (!removed) {
 				throw new IllegalStateException("current record bin cannot be removed from the record pipe on port " + this.port);
 			}
-			MotionRecorder.this.currentRecordBin.stop();
+			
+			
+			final Bin oldRecorder = MotionRecorder.this.currentRecordBin;
+			
+			//bugfix?
+			pad.removeEventProbe(probe);
+			pad.sendEvent(event);
+			
+			//bug TODO workaround, will create a lot of threads in the background
+			new Thread(new Runnable() {
+				
+				@Override
+				public void run() {
+					
+					oldRecorder.stop();
+				}
+			}).start();
+			
 			MotionRecorder.this.pipe.addMany(newRecordBin);
 			boolean connected = Element.linkMany(MotionRecorder.this.firstBin, newRecordBin);
 			if (!connected) {
@@ -525,7 +546,6 @@ public class MotionRecorder {
 			MotionRecorder.this.currentRecordBin = newRecordBin;
 			//change the isRecording status
 			MotionRecorder.this.isRecording=!MotionRecorder.this.isRecording;
-			pad.removeEventProbe(probe);
 			if (stopPipe) {
 				this.pipe.stop();
 			}

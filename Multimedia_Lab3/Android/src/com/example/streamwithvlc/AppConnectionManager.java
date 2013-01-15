@@ -18,6 +18,7 @@ import java.util.Scanner;
 import java.util.TreeMap;
 
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 import classes.Camera;
 import classes.Room;
@@ -507,36 +508,44 @@ public class AppConnectionManager {
 			in = socket.getInputStream();
 
 			//read the file itself
-			Log.i("ANSUR", "File dir: " + context.getFilesDir().toString());
-
 
 			File file = new File(context.getExternalFilesDir(null), filename);
-			Log.i("ANSUR.Connection", "Trying to receive file to " +
-					file.getAbsolutePath());
+			String fullPathName = file.getAbsolutePath();
+			
+			//create starting information
+			String startMessage = "Trying to download movie to " + fullPathName;	
+			handleMessage(context, startMessage);
+			
+			createDownloadInformation(context, false, fullPathName, 0, filesize);
+			
+			//download the file
 			FileOutputStream fileOutputStream = new FileOutputStream(file);
 			bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
 
-			int length;
-			int size = 1024;
-			byte[] buf;
+			int currentReadLength;
+			byte[] movieArray;
+			int size = 1024; //download the movie in steps of 1024 bytes
+			int total=0;
 
 			if (in instanceof ByteArrayInputStream) {
 				size = in.available();
-				buf = new byte[size];
-				length = in.read(buf, 0, size);
+				movieArray = new byte[size];
+				currentReadLength = in.read(movieArray, 0, size);
 			} else {
 				ByteArrayOutputStream bos = new ByteArrayOutputStream();
-				buf = new byte[size];
-				while ((length = in.read(buf, 0, size)) != -1) {
-					bos.write(buf, 0, length);
+				movieArray = new byte[size];
+				while ((currentReadLength = in.read(movieArray, 0, size)) != -1) {
+					bos.write(movieArray, 0, currentReadLength);
+					total+=currentReadLength;
+					createDownloadInformation(context, false, fullPathName, total, filesize);
 				}
-				buf = bos.toByteArray();
+				movieArray = bos.toByteArray();
 			}
 
 
 
-			if (buf.length!=filesize) {
-				String message = "Downloading error. Received bytes = " + buf.length + ", expected bytes =" +filesize+".";
+			if (movieArray.length!=filesize) {
+				String message = "Downloading error. Received bytes = " + movieArray.length + ", expected bytes =" +filesize+".";
 				throw new IOException(message);
 			}
 			//			for (int i=0;i<bytearray.length;i++) {
@@ -549,10 +558,10 @@ public class AppConnectionManager {
 			//				bytearray[i]=scanner.nextByte();
 			//			}
 
-			bufferedOutputStream.write(buf, 0 , buf.length);
+			bufferedOutputStream.write(movieArray, 0 , movieArray.length);
 			bufferedOutputStream.flush();
-
-			Log.i("ANSUR", "Downloading movie finished!");
+			createDownloadInformation(context, true, fullPathName, movieArray.length, filesize);
+			handleMessage(context, "Downloading movie finished!");
 		} finally {
 			if (bufferedOutputStream !=null) {
 				bufferedOutputStream.close();
@@ -562,5 +571,22 @@ public class AppConnectionManager {
 				in.close();
 			}
 		}
+	}
+
+	private static void createDownloadInformation(Context context, boolean isDone, String filepath, int finished, int total) {
+		Log.i("ANSUR.Connection", "Download update: isdone=" + isDone + ", finished " + finished + "/" + total +"bytes.");
+		Intent intent = new Intent(DownloadFileActivity.DOWNLOAD_MESSAGE_ACTION);
+        intent.putExtra(DownloadFileActivity.DMessage_ISDONE, isDone);
+        intent.putExtra(DownloadFileActivity.DMessage_MOVIEPATH, filepath);
+        intent.putExtra(DownloadFileActivity.DMessage_BYTESDOWNLOADED, finished);
+        intent.putExtra(DownloadFileActivity.DMessage_FILESIZE, total);
+        context.sendBroadcast(intent);
+	}
+
+	private static void handleMessage(Context context, String startMessage) {
+		Log.i("ANSUR.Connection", startMessage);
+		Intent intent = new Intent(MainActivity.TOAST_MESSAGE_ACTION);
+        intent.putExtra(MainActivity.EXTRA_MESSAGE, startMessage);
+        context.sendBroadcast(intent);
 	}
 }
