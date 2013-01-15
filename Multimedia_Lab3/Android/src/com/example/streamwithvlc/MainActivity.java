@@ -1,8 +1,5 @@
 package com.example.streamwithvlc;
 
-import java.io.IOException;
-import java.net.UnknownHostException;
-
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -198,30 +195,7 @@ public class MainActivity extends Activity {
 			break;
 
 		case R.id.dConnectButton:
-			//deregisterDevice();
-			AsyncTask<Void, Void, Void> deregisterServerTask = new AsyncTask<Void, Void, Void>() {
-				
-				@Override
-				protected Void doInBackground(Void... params) {
-					try {
-						//Get movie name and endable button
-						 AppConnectionManager.downloadMotionRecord(getApplicationContext(), "/home/marc/test.mp4");
-					} catch (UnknownHostException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					return null;
-				}
-
-				@Override
-				protected void onPostExecute(Void result) {
-				}
-
-			};
-			deregisterServerTask.execute(null,null,null);
+			deregisterDevice();
 			break;
 		}
 	}
