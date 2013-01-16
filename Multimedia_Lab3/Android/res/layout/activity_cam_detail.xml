@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@drawable/bg"
+    android:orientation="vertical" >
+ <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" >
+
+        <Button
+            android:id="@+id/copyToClipbordButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="onClick" 
+            android:textColor="#008080"
+            android:text="@string/copyToClipbordButton" />
+
+        <Button
+            android:id="@+id/launchVLCButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="onClick"
+            android:textColor="#008080"
+            android:text="@string/launch_vlc_button" />
+
+        <Button
+            android:id="@+id/camdetail_back_Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="onClick"
+            android:textColor="#008080"
+            android:text="@string/back_button" />
+    </LinearLayout>
+    
+    <ExpandableListView
+        android:id="@+id/listView"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:scrollbars="none" >
+    </ExpandableListView>
+
+</LinearLayout>

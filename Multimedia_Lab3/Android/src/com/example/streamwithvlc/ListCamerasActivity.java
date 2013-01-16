@@ -18,6 +18,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.ExpandableListView;
+import android.widget.ExpandableListView.OnChildClickListener;
 import android.widget.Toast;
 import classes.Camera;
 import classes.Room;
@@ -34,6 +35,19 @@ public class ListCamerasActivity extends Activity {
 	
 	private AsyncTask<Void, Void, Void> refreshTask;
 	private AsyncTask<Void, Void, Void> subscribeTask;
+	private OnChildClickListener childClickListener = new OnChildClickListener() {
+			
+			@Override
+			public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
+				// 
+				RoomListviewAdapter adapter = (RoomListviewAdapter)parent.getExpandableListAdapter();
+				Camera cam = adapter.getChild(groupPosition, childPosition);
+				Intent intent = new Intent(getApplicationContext(), CamDetailActivity.class);
+				intent.putExtra("CLICKEDCAMERA",cam);
+				startActivity(intent);
+				return true;
+			}
+		};
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +68,8 @@ public class ListCamerasActivity extends Activity {
 		Collection<Room> rooms = this.generateRooms();
 
 		updateListview(listView, rooms);
+		listView.setOnChildClickListener(this.childClickListener);
+		
 		this.refreshList();
 
 	}

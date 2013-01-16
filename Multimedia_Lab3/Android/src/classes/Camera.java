@@ -1,7 +1,14 @@
 package classes;
 
-public class Camera implements Comparable<Camera>{
+import java.io.Serializable;
 
+public class Camera implements Comparable<Camera>, Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -5568024008092166616L;
+	
 	private String name;
 	private int port;
 	private boolean isSelected;

@@ -15,5 +15,8 @@
     <string name="set_settings_button">Save</string>
     <string name="title_activity_download_file">Downloading Movie</string>
     <string name="Downloading_movie">Movie Downloaded!</string>
+    <string name="copyToClipbordButton">Copy streamdetails to clipbord!</string>
+    <string name="launch_vlc_button">Launch VLC</string>
+        <string name="title_activity_cam_detail">Camera Detail</string>
 
 </resources>
