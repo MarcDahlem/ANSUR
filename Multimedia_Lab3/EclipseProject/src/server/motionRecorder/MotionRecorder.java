@@ -355,8 +355,18 @@ public class MotionRecorder {
 		Bin sourceBin = new Bin("source");
 		Element src = ElementFactory.make("tcpserversrc", "tcpserversrc on port "+this.port);
 		src.set("port", this.port);
-		src.set("host", "0.0.0.0");
-
+		src.set("host", "0.0.0.0"); //0.0.0.0 accept any incoms
+		
+		//add a proxy streaming
+		Element tee = ElementFactory.make("tee", "Stream splitter to proxy the incoming video");
+		Element proxyQueue = ElementFactory.make("queue", "Proxyqueue for the new thread");
+		Element parser = ElementFactory.make("oggparse", "Proxy video parser that sets caps correctly");
+		Element proxysink = ElementFactory.make("tcpserversink", "proxysink to forward this stream");
+		proxysink.set("port", this.port+1);
+		proxysink.set("host","0.0.0.0");
+		
+		//on the other tee part add a decoding pipe
+		Element demuxQueue = ElementFactory.make("queue", "Demux queue for the new thread");
 		Element demux = ElementFactory.make("oggdemux", "Ogg demuxer on port " + this.port);
 		final Element dec = ElementFactory.make("theoradec", "Theora decoder on port " + this.port);
 		demux.connect(new Element.PAD_ADDED() {
@@ -402,9 +412,11 @@ public class MotionRecorder {
 		});
 		Element ffmpeg = ElementFactory.make("ffmpegcolorspace", "ffmpegcolorspace for the motion detection on port " + this.port);
 
-		//link the motion detector and the webcam
-		sourceBin.addMany(src, demux, dec, ffmpeg, motionDetection);
-		Element.linkMany(src, demux);
+		//link all elements
+		sourceBin.addMany(src,tee, proxyQueue, parser, proxysink, demuxQueue, demux, dec, ffmpeg, motionDetection);
+		Element.linkMany(src, tee);
+		Element.linkMany(tee, proxyQueue, parser, proxysink);
+		Element.linkMany(tee, demuxQueue, demux);
 		Element.linkMany(dec, ffmpeg, motionDetection);
 
 		// add a ghost pad, so that the bin is accessible from the outside

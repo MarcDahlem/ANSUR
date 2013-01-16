@@ -445,8 +445,9 @@ public class ServerConnectionManager {
 			//error appeard means cameraname was already existent in this room
 			writer.write(ConnectionEventType.SERVER_EXCEPTION.name() + "\n");
 		} else {
-			// no error thrown while notifying. That means room
-			writer.write(""+this.portCount++);
+			// no error thrown while notifying. That means room and camera name were right
+			writer.write(""+this.portCount);
+			this.portCount+=2; //update with two, because the started pipe starts a streaming on (port+1)
 		} 
 		writer.flush();
 	}

@@ -38,9 +38,9 @@ public class GCMIntentService extends GCMBaseIntentService {
 			String msCamera_name = extras.getString(GcmMessages.CAMERA_NAME);
 			String msRoom_name = extras.getString(GcmMessages.ROOM_NAME);
 			String msPort = extras.getString(GcmMessages.PORT);
-
+			int streamingPort = Integer.valueOf(msPort) + 1;
 			String msMessage = "Cam: " + msCamera_name + " in: " + msRoom_name + " on:" + msPort;
-			createNotificationMotionDetected("Motion detected on", msMessage, msFile_path.hashCode());
+			createNotificationMotionDetected("Motion detected on", streamingPort , msMessage, msFile_path.hashCode());
 			break;
 
 		case MOTION_END:
@@ -82,7 +82,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 	}
 
 
-	public void createNotificationMotionDetected(String title, String message, int notificationID) {
+	public void createNotificationMotionDetected(String title, int streamingPort, String message, int notificationID) {
 
 		Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.motion);
 
@@ -121,7 +121,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 
 		ClipboardManager clipboard = (ClipboardManager)
 				getSystemService(Context.CLIPBOARD_SERVICE);
-		ClipData clip = ClipData.newPlainText("Server","tcp://"+MainActivity.HOSTNAME+":"+MainActivity.PORT);
+		ClipData clip = ClipData.newPlainText("Server","tcp://"+MainActivity.HOSTNAME+":"+streamingPort);
 
 		clipboard.setPrimaryClip(clip);
 
