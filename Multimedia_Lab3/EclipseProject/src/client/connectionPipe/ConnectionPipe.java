@@ -107,7 +107,10 @@ public class ConnectionPipe {
 		pipe.add(netSink);
 		netSink.set("host", this.host);
 		netSink.set("port", this.port);
-
+		//bugfix netsink internal dataflow problem (because timestamps or so):
+		netSink.set("sync", "false");
+		
+		
 		// link all elements
 		Element.linkMany(src, videorate, ffmpeg1, videoFilter, videoscale, videoFilter2, enc_queue, ffmpeg2, enc, mux, net_queue, netSink);
 
