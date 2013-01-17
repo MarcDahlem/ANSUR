@@ -570,6 +570,8 @@ public class MotionRecorder {
 
 	public void setPlayer(VideoComponent vid, final boolean connect, boolean force) {
 		final Element vidSink = vid.getElement();
+		//vidSink.set("sync", "false");
+		
 		if (connect) {
 			vidSink.setName("SWTVideo on port " + this.port);
 		} else {
